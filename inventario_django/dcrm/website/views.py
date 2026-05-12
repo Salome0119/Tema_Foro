@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
+from .forms import RegisterForm
 
 def home(request):
     if request.method == 'POST':
@@ -39,30 +40,20 @@ def logout_user(request):
 
 def register(request):
     if request.method == 'POST':
-        username = request.POST['username']
-        email = request.POST['email']
-        password1 = request.POST['password1']
-        password2 = request.POST['password2']
-        
-        if password1 != password2:
-            messages.error(request, "Las contraseñas no coinciden")
+        form = RegisterForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            
+            from website.models import Perfil
+            Perfil.objects.create(user=user)
+            
+            messages.success(request, "Cuenta creada exitosamente. Por favor, inicia sesión.")
+            return redirect('login')
+        else:
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f"{field}: {error}")
             return redirect('register')
-        
-        if User.objects.filter(username=username).exists():
-            messages.error(request, "El usuario ya existe")
-            return redirect('register')
-        
-        if User.objects.filter(email=email).exists():
-            messages.error(request, "El correo ya está registrado")
-            return redirect('register')
-        
-        user = User.objects.create_user(username=username, email=email, password=password1)
-        user.save()
-        
-        from website.models import Perfil
-        Perfil.objects.create(user=user)
-        
-        messages.success(request, "Cuenta creada exitosamente. Por favor, inicia sesión.")
-        return redirect('login')
     
-    return render(request, 'register.html', {})
+    form = RegisterForm()
+    return render(request, 'register.html', {'form': form})
