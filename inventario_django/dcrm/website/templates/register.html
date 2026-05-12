@@ -1,0 +1,125 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<style>
+    .register-container {
+        min-height: 80vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .register-card {
+        width: 100%;
+        max-width: 450px;
+        border: none;
+        border-radius: 15px;
+        overflow: hidden;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        transition: transform 0.3s ease;
+    }
+    .register-card:hover {
+        transform: translateY(-5px);
+    }
+    .register-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 30px;
+        text-align: center;
+    }
+    .register-body {
+        padding: 30px;
+        background: white;
+    }
+    .form-control:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 0.25rem rgba(102, 126, 234, 0.25);
+    }
+    .btn-register {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        padding: 12px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        transition: all 0.3s ease;
+    }
+    .btn-register:hover {
+        background: linear-gradient(135deg, #5a6fd6 0%, #6a4190 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+    }
+    .input-group-text {
+        background-color: #f8f9fa;
+        border-color: #ced4da;
+        border-right: none;
+    }
+    .form-control {
+        border-left: none;
+        border-top-right-radius: 0;
+        border-bottom-right-radius: 0;
+    }
+</style>
+
+<div class="register-container">
+    <div class="card register-card shadow">
+        <div class="register-header">
+            <i class="bi bi-person-plus display-4 text-white"></i>
+            <h3 class="text-white mt-2 fw-bold">Crear Cuenta</h3>
+            <p class="text-white-50 mb-0">Únete a Django CRM</p>
+        </div>
+        <div class="register-body">
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show" role="alert">
+                        {% if message.tags == 'success' %}
+                            <i class="bi bi-check-circle-fill me-2"></i>
+                        {% else %}
+                            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                        {% endif %}
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+            
+            <form method="POST" action="{% url 'register' %}">
+                {% csrf_token %}
+                <div class="mb-4">
+                    <label for="username" class="form-label fw-semibold"><i class="bi bi-person me-1"></i>Usuario</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-person"></i></span>
+                        <input type="text" class="form-control" id="username" name="username" placeholder="Elige un usuario" required>
+                    </div>
+                </div>
+                <div class="mb-4">
+                    <label for="email" class="form-label fw-semibold"><i class="bi bi-envelope me-1"></i>Correo electrónico</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+                        <input type="email" class="form-control" id="email" name="email" placeholder="tu@email.com" required>
+                    </div>
+                </div>
+                <div class="mb-4">
+                    <label for="password1" class="form-label fw-semibold"><i class="bi bi-lock me-1"></i>Contraseña</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                        <input type="password" class="form-control" id="password1" name="password1" placeholder="Crea una contraseña" required>
+                    </div>
+                </div>
+                <div class="mb-4">
+                    <label for="password2" class="form-label fw-semibold"><i class="bi bi-lock-fill me-1"></i>Confirmar contraseña</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-lock-fill"></i></span>
+                        <input type="password" class="form-control" id="password2" name="password2" placeholder="Repite la contraseña" required>
+                    </div>
+                </div>
+                <div class="d-grid">
+                    <button type="submit" class="btn btn-primary btn-register w-100">
+                        <i class="bi bi-person-plus me-2"></i>Crear Cuenta
+                    </button>
+                </div>
+            </form>
+            <hr class="my-4">
+            <p class="text-center mb-0">¿Ya tienes cuenta? <a href="{% url 'login' %}" class="text-primary fw-semibold"><i class="bi bi-box-arrow-in-right me-1"></i>Iniciar sesión</a></p>
+        </div>
+    </div>
+</div>
+{% endblock %}

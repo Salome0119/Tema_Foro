@@ -1,0 +1,155 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<style>
+    @keyframes wave {
+        0%, 100% { transform: rotate(0deg); }
+        25% { transform: rotate(-20deg); }
+        75% { transform: rotate(20deg); }
+    }
+    .wave-hand {
+        display: inline-block;
+        animation: wave 1s ease-in-out infinite;
+        transform-origin: bottom center;
+    }
+</style>
+
+{% if user.is_authenticated %}
+<div class="container py-4" style="background-color:#E6E6FA;">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="card border-0 shadow-lg" style="border-radius: 20px; overflow: hidden;">
+                <div class="card-body p-0">
+                    <div class="row g-0">
+                        <div class="col-md-5 text-white d-flex align-items-center justify-content-center" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 50px;">
+                            <div class="text-center">
+                                <i class="bi bi-rocket-takeoff display-3 mb-3"></i>
+                                <h2 class="fw-bold">¡Hola, {{ user.username }}! 👋</h2>
+                                <p class="opacity-75">Bienvenido de nuevo</p>
+                            </div>
+                        </div>
+                        <div class="col-md-7 p-5 d-flex align-items-center">
+                            <div>
+                                <h3 class="fw-bold text-primary mb-3">Bienvenido a Django CRM</h3>
+                                <p class="text-muted mb-0">Gestiona tu información de forma sencilla y rápida con nuestras herramientas.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row justify-content-center mt-4">
+        <div class="col-md-10">
+            <div id="welcomeCarousel" class="carousel slide" data-bs-ride="carousel">
+                <div class="carousel-inner rounded-4 overflow-hidden">
+                    <div class="carousel-item active">
+                        <img src="https://images.unsplash.com/photo-1553877522-43269d4ea984?w=800&h=300&fit=crop" class="d-block w-100" alt="Team work" style="height: 250px; object-fit: cover;">
+                        <div class="carousel-caption d-none d-md-block bg-dark bg-opacity-50 rounded">
+                            <h5 class="fw-bold">🤝 Trabajo en equipo</h5>
+                            <p>Colabora con tu equipo de manera eficiente</p>
+                        </div>
+                    </div>
+                    <div class="carousel-item">
+                        <img src="https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&h=300&fit=crop" class="d-block w-100" alt="Analytics" style="height: 250px; object-fit: cover;">
+                        <div class="carousel-caption d-none d-md-block bg-dark bg-opacity-50 rounded">
+                            <h5 class="fw-bold">📊 Análisis de datos</h5>
+                            <p>Toma decisiones informadas con gráficos claros</p>
+                        </div>
+                    </div>
+                    <div class="carousel-item">
+                        <img src="https://images.unsplash.com/photo-1551434678-e076c223a692?w=800&h=300&fit=crop" class="d-block w-100" alt="Success" style="height: 250px; object-fit: cover;">
+                        <div class="carousel-caption d-none d-md-block bg-dark bg-opacity-50 rounded">
+                            <h5 class="fw-bold">🎯 Alcanza tus metas</h5>
+                            <p>Gestiona tus proyectos hacia el éxito</p>
+                        </div>
+                    </div>
+                    <div class="carousel-item">
+                        <img src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=800&h=300&fit=crop" class="d-block w-100" alt="Growth" style="height: 250px; object-fit: cover;">
+                        <div class="carousel-caption d-none d-md-block bg-dark bg-opacity-50 rounded">
+                            <h5 class="fw-bold">📈 Crecimiento profesional</h5>
+                            <p>Impulsa tu negocio con herramientas potentes</p>
+                        </div>
+                    </div>
+                </div>
+                <button class="carousel-control-prev" type="button" data-bs-target="#welcomeCarousel" data-bs-slide="prev">
+                    <span class="carousel-control-prev-icon bg-primary rounded-circle" aria-hidden="true" style="width: 40px; height: 40px;"></span>
+                    <span class="visually-hidden">Previous</span>
+                </button>
+                <button class="carousel-control-next" type="button" data-bs-target="#welcomeCarousel" data-bs-slide="next">
+                    <span class="carousel-control-next-icon bg-primary rounded-circle" aria-hidden="true" style="width: 40px; height: 40px;"></span>
+                    <span class="visually-hidden">Next</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="row justify-content-center mt-4">
+        <div class="col-md-6">
+            <div class="card border-0 shadow-lg text-center" style="border-radius: 20px; background: linear-gradient(135deg, #f8f9ff 0%, #e8eaff 100%);">
+                <div class="card-body py-4">
+                    <span class="display-1">👋</span>
+                    <h4 class="fw-bold mt-2">¡Que tengas un excelente día! 😊</h4>
+                    <p class="text-muted">Estamos felices de verte por aquí</p>
+                    <span class="wave-hand display-3">😊</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% else %}
+
+<div class="container py-5">  
+    <div class="row justify-content-center">
+        <div class="col-md-5">
+            <div class="card border-0 shadow-lg" style="border-radius: 20px;">
+                <div class="card-body p-5">
+                    <div class="text-center mb-4">
+                        <i class="bi bi-box-seam display-4 text-primary"></i>
+                        <h2 class="fw-bold mt-3">Django CRM</h2>
+                        <p class="text-muted">Ingresa al sistema</p>
+                    </div>
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                    <form method="POST" action="{% url 'home' %}">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Usuario</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-person"></i></span>
+                                <input type="text" class="form-control form-control-lg" name="username" placeholder="Usuario" required>
+                            </div>
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold">Contraseña</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                                <input type="password" class="form-control form-control-lg" name="password" placeholder="Contraseña" required>
+                            </div>
+                        </div>
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary btn-lg rounded-pill fw-semibold">
+                                <i class="bi bi-box-arrow-in-right me-2"></i>Iniciar Sesión
+                            </button>
+                        </div>
+                    </form>
+                    <hr class="my-4">
+                    <p class="text-center mb-0">¿No tienes cuenta? <a href="{% url 'register' %}" class="text-primary fw-semibold">Crear cuenta</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endif %}
+
+{% endblock %}
