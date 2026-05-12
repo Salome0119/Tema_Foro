@@ -87,29 +87,49 @@
                     <label for="username" class="form-label fw-semibold"><i class="bi bi-person me-1"></i>Usuario</label>
                     <div class="input-group">
                         <span class="input-group-text"><i class="bi bi-person"></i></span>
-                        <input type="text" class="form-control" id="username" name="username" placeholder="Elige un usuario" required>
+                        {{ form.username }}
                     </div>
+                    {% if form.username.errors %}
+                        <div class="text-danger mt-1">
+                            {{ form.username.errors|first }}
+                        </div>
+                    {% endif %}
                 </div>
                 <div class="mb-4">
                     <label for="email" class="form-label fw-semibold"><i class="bi bi-envelope me-1"></i>Correo electrónico</label>
                     <div class="input-group">
                         <span class="input-group-text"><i class="bi bi-envelope"></i></span>
-                        <input type="email" class="form-control" id="email" name="email" placeholder="tu@email.com" required>
+                        {{ form.email }}
                     </div>
+                    {% if form.email.errors %}
+                        <div class="text-danger mt-1">
+                            {{ form.email.errors|first }}
+                        </div>
+                    {% endif %}
                 </div>
                 <div class="mb-4">
                     <label for="password1" class="form-label fw-semibold"><i class="bi bi-lock me-1"></i>Contraseña</label>
                     <div class="input-group">
                         <span class="input-group-text"><i class="bi bi-lock"></i></span>
-                        <input type="password" class="form-control" id="password1" name="password1" placeholder="Crea una contraseña" required>
+                        {{ form.password1 }}
                     </div>
+                    {% if form.password1.errors %}
+                        <div class="text-danger mt-1">
+                            {{ form.password1.errors|first }}
+                        </div>
+                    {% endif %}
                 </div>
                 <div class="mb-4">
                     <label for="password2" class="form-label fw-semibold"><i class="bi bi-lock-fill me-1"></i>Confirmar contraseña</label>
                     <div class="input-group">
                         <span class="input-group-text"><i class="bi bi-lock-fill"></i></span>
-                        <input type="password" class="form-control" id="password2" name="password2" placeholder="Repite la contraseña" required>
+                        {{ form.password2 }}
                     </div>
+                    {% if form.password2.errors %}
+                        <div class="text-danger mt-1">
+                            {{ form.password2.errors|first }}
+                        </div>
+                    {% endif %}
                 </div>
                 <div class="d-grid">
                     <button type="submit" class="btn btn-primary btn-register w-100">
