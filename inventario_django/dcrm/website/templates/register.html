@@ -95,20 +95,44 @@
                         </div>
                     {% endif %}
                 </div>
-                <div class="mb-4">
-                    <label for="email" class="form-label fw-semibold"><i class="bi bi-envelope me-1"></i>Correo electrónico</label>
-                    <div class="input-group">
-                        <span class="input-group-text"><i class="bi bi-envelope"></i></span>
-                        {{ form.email }}
-                    </div>
-                    {% if form.email.errors %}
-                        <div class="text-danger mt-1">
-                            {{ form.email.errors|first }}
-                        </div>
-                    {% endif %}
-                </div>
-                <div class="mb-4">
-                    <label for="password1" class="form-label fw-semibold"><i class="bi bi-lock me-1"></i>Contraseña</label>
+<div class="mb-4">
+                     <label for="email" class="form-label fw-semibold"><i class="bi bi-envelope me-1"></i>Correo electrónico</label>
+                     <div class="input-group">
+                         <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+                         {{ form.email }}
+                     </div>
+                     {% if form.email.errors %}
+                         <div class="text-danger mt-1">
+                             {{ form.email.errors|first }}
+                         </div>
+                     {% endif %}
+                 </div>
+                 <div class="mb-4">
+                     <label for="first_name" class="form-label fw-semibold"><i class="bi bi-person me-1"></i>Nombre</label>
+                     <div class="input-group">
+                         <span class="input-group-text"><i class="bi bi-person"></i></span>
+                         {{ form.first_name }}
+                     </div>
+                     {% if form.first_name.errors %}
+                         <div class="text-danger mt-1">
+                             {{ form.first_name.errors|first }}
+                         </div>
+                     {% endif %}
+                 </div>
+                 <div class="mb-4">
+                     <label for="last_name" class="form-label fw-semibold"><i class="bi bi-person me-1"></i>Apellido</label>
+                     <div class="input-group">
+                         <span class="input-group-text"><i class="bi bi-person"></i></span>
+                         {{ form.last_name }}
+                     </div>
+                     {% if form.last_name.errors %}
+                         <div class="text-danger mt-1">
+                             {{ form.last_name.errors|first }}
+                         </div>
+                     {% endif %}
+                 </div>
+                 <div class="mb-4">
+                     <label for="password1" class="form-label fw-semibold"><i class="bi bi-lock me-1"></i>Contraseña</label>
                     <div class="input-group">
                         <span class="input-group-text"><i class="bi bi-lock"></i></span>
                         {{ form.password1 }}

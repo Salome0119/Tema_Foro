@@ -84,18 +84,28 @@
             <form method="POST" action="{% url 'login' %}">
                 {% csrf_token %}
                 <div class="mb-4">
-                    <label for="username" class="form-label fw-semibold"><i class="bi bi-person me-1"></i>Usuario</label>
+                    <label for="username" class="form-label fw-semibold"><i class="bi bi-person me-1"></i>{{ form.username.label }}</label>
                     <div class="input-group">
                         <span class="input-group-text"><i class="bi bi-person"></i></span>
-                        <input type="text" class="form-control" id="username" name="username" placeholder="Ingresa tu usuario" required>
+                        {{ form.username }}
                     </div>
+                    {% if form.username.errors %}
+                        <div class="text-danger mt-1">
+                            {{ form.username.errors|first }}
+                        </div>
+                    {% endif %}
                 </div>
                 <div class="mb-4">
-                    <label for="password" class="form-label fw-semibold"><i class="bi bi-lock me-1"></i>Contraseña</label>
+                    <label for="password" class="form-label fw-semibold"><i class="bi bi-lock me-1"></i>{{ form.password.label }}</label>
                     <div class="input-group">
                         <span class="input-group-text"><i class="bi bi-lock"></i></span>
-                        <input type="password" class="form-control" id="password" name="password" placeholder="Ingresa tu contraseña" required>
+                        {{ form.password }}
                     </div>
+                    {% if form.password.errors %}
+                        <div class="text-danger mt-1">
+                            {{ form.password.errors|first }}
+                        </div>
+                    {% endif %}
                 </div>
                 <div class="d-grid">
                     <button type="submit" class="btn btn-primary btn-login w-100">
