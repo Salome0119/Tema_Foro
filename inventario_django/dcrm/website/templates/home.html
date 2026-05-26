@@ -11,7 +11,7 @@
                         <div class="col-md-12 text-white d-flex align-items-center justify-content-center" style="background: linear-gradient(135deg, #CDC1FF 0%, #B39DDB 100%); padding: 30px;">
                             <div class="text-center">
                                 <i class="bi bi-rocket-takeoff display-3 mb-3"></i>
-                                <h2 class="fw-bold">¡Hola, {{ user.username }}! 👋</h2>
+                                <h2 class="fw-bold">¡Hola, {{ user.username }}! </h2>
                                 <p class="opacity-75">Bienvenido de nuevo</p>
                             </div>
                         </div>
@@ -29,6 +29,7 @@
                                             <th>Nombre</th>
                                             <th>Apellido</th>
                                             <th>Fecha registro</th>
+                                            <th>Acciones</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -39,6 +40,11 @@
                                             <td>{{ usuario.first_name|default:"No especificado" }}</td>
                                             <td>{{ usuario.last_name|default:"No especificado" }}</td>
                                             <td>{{ usuario.date_joined|date:"d/m/Y H:i" }}</td>
+<td>
+                                <a href="{% url 'customer_record' usuario.pk %}" class="btn btn-sm rounded-pill fw-semibold" style="background: linear-gradient(135deg, #CDC1FF 0%, #B39DDB 100%); color: white; border: none;">
+                                    <i class="bi bi-info-circle me-1"></i>Info
+                                </a>
+                            </td>
                                         </tr>
                                         {% endfor %}
                                     </tbody>
@@ -88,7 +94,7 @@
                         </div>
                     </form>
                     <hr class="my-4">
-                    <p class="text-center mb-0">¿No tienes cuenta? <a href="{% url 'register' %}" class="text-primary fw-semibold">Crear cuenta</a></p>
+                    <p class="text-center mb-0">¿No tienes cuenta? <a href="{% url 'customer_record' %}" class="fw-semibold" style="color: #6644b8;">Registrar usuario</a></p>
                 </div>
             </div>
         </div>

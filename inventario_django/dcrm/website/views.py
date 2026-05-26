@@ -1,17 +1,77 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from .forms import RegisterForm, LoginForm
+from django import forms
+
+class UserUpdateForm(forms.ModelForm):
+    class Meta:
+        model = User
+        fields = ['username', 'email', 'first_name', 'last_name']
+        labels = {
+            'username': 'Usuario',
+            'email': 'Correo electrónico',
+            'first_name': 'Nombre',
+            'last_name': 'Apellido',
+        }
+        widgets = {
+            'username': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Usuario'}),
+            'email': forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'Correo electrónico'}),
+            'first_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nombre'}),
+            'last_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Apellido'}),
+        }
 
 def home(request):
     if request.user.is_authenticated:
-        # Usuario autenticado, mostrar página de inicio
         usuarios = User.objects.all()
         return render(request, 'home.html', {'usuarios': usuarios})
     else:
-        # Usuario no autenticado, mostrar página de login
         return render(request, 'login.html', {})
+
+
+class DeleteConfirmForm(forms.Form):
+    confirm_username = forms.CharField(
+        max_length=150,
+        label="Escribe el nombre de usuario para confirmar",
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Confirmar usuario'})
+    )
+
+def customer_record(request, pk):
+    usuario = get_object_or_404(User, pk=pk)
+    if request.method == 'POST':
+        form = DeleteConfirmForm(request.POST)
+        if form.is_valid():
+            confirm_username = form.cleaned_data.get('confirm_username')
+            if not request.user.is_superuser:
+                messages.error(request, "No tienes permiso para eliminar usuarios.")
+            elif confirm_username != usuario.username:
+                messages.error(request, "El nombre de usuario no coincide. No se eliminó.")
+            else:
+                usuario.delete()
+                messages.success(request, f"Usuario {usuario.username} eliminado exitosamente.")
+        else:
+            messages.error(request, "Error en la validación.")
+        return redirect('home')
+    return render(request, 'customer_record.html', {'usuario': usuario})
+
+
+def customer_update(request, pk):
+    usuario = get_object_or_404(User, pk=pk)
+    if request.method == 'POST':
+        form = UserUpdateForm(request.POST, instance=usuario)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f"Usuario {usuario.username} actualizado exitosamente.")
+            return redirect('home')
+        else:
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f"{field}: {error}")
+    else:
+        form = UserUpdateForm(instance=usuario)
+    
+    return render(request, 'customer_update.html', {'form': form, 'usuario': usuario})
 
 
 def login_user(request):

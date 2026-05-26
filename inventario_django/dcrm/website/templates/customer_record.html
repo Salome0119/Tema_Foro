@@ -1,0 +1,84 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container py-5" style="background-color:#E6E6FA;">
+    <div class="row justify-content-center">
+        <div class="col-md-12">
+            <div class="card border-0 shadow-lg" style="border-radius: 20px; overflow: hidden;">
+                <div class="card-header text-white text-center py-4" style="background: linear-gradient(135deg, #CDC1FF 0%, #B39DDB 100%);">
+                    <h3 class="fw-bold mb-0"><i class="bi bi-person-circle me-2"></i>Detalles del Usuario: {{ usuario.username }}</h3>
+                </div>
+                <div class="card-body p-5">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h5 class="fw-bold text-primary mb-3">Información del Usuario</h5>
+                            <ul class="list-unstyled text-muted">
+                                <li class="mb-2"><strong>ID:</strong> {{ usuario.id }}</li>
+                                <li class="mb-2"><strong>Usuario:</strong> {{ usuario.username }}</li>
+                                <li class="mb-2"><strong>Email:</strong> {{ usuario.email|default:"No especificado" }}</li>
+                                <li class="mb-2"><strong>Nombre:</strong> {{ usuario.first_name|default:"No especificado" }}</li>
+                                <li class="mb-2"><strong>Apellido:</strong> {{ usuario.last_name|default:"No especificado" }}</li>
+                                <li class="mb-2"><strong>Fecha registro:</strong> {{ usuario.date_joined|date:"d/m/Y H:i" }}</li>
+                                <li class="mb-2"><strong>Último login:</strong> {{ usuario.last_login|date:"d/m/Y H:i"|default:"Nunca" }}</li>
+                                <li class="mb-2"><strong>Activo:</strong> {{ usuario.is_active|yesno:"Sí,No" }}</li>
+                                <li class="mb-2"><strong>Staff:</strong> {{ usuario.is_staff|yesno:"Sí,No" }}</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h5 class="fw-bold text-primary mb-3">Perfil</h5>
+                            {% if usuario.perfil %}
+                            <ul class="list-unstyled text-muted">
+                                <li class="mb-2"><strong>Teléfono:</strong> {{ usuario.perfil.telefono|default:"No especificado" }}</li>
+                                <li class="mb-2"><strong>Dirección:</strong> {{ usuario.perfil.direccion|default:"No especificada" }}</li>
+                                <li class="mb-2"><strong>Fecha de creación de perfil:</strong> {{ usuario.perfil.fecha_creacion|date:"d/m/Y H:i" }}</li>
+                            </ul>
+                            {% else %}
+                            <p class="text-muted">Sin perfil asociado.</p>
+                            {% endif %}
+</div>
+                     </div>
+                     <hr class="my-4">
+                     <div class="d-flex justify-content-between">
+                         <a href="{% url 'home' %}" class="btn rounded-pill" style="background: linear-gradient(135deg, #CDC1FF 0%, #B39DDB 100%); color: white;">
+                             <i class="bi bi-arrow-left me-2"></i>Volver
+                         </a>
+                         {% if user.is_superuser %}
+                         <div class="d-flex gap-2">
+                             <a href="{% url 'customer_update' usuario.pk %}" class="btn rounded-pill fw-semibold" style="background: linear-gradient(135deg, #CDC1FF 0%, #B39DDB 100%); color: white; border: none;">
+                                 <i class="bi bi-pencil me-2"></i>Actualizar
+                             </a>
+                             <button type="button" class="btn btn-danger rounded-pill fw-semibold" data-bs-toggle="modal" data-bs-target="#deleteModal">
+                                 <i class="bi bi-trash me-2"></i>Eliminar Usuario
+                             </button>
+                         </div>
+                         {% endif %}
+                     </div>
+                 </div>
+             </div>
+         </div>
+     </div>
+ </div>
+ 
+ <!-- Modal de Confirmación -->
+ <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+     <div class="modal-dialog">
+         <div class="modal-content">
+             <form method="POST">
+                 {% csrf_token %}
+                 <div class="modal-header" style="background: linear-gradient(135deg, #CDC1FF 0%, #B39DDB 100%); color: white;">
+                     <h5 class="modal-title" id="deleteModalLabel">Confirmar Eliminación</h5>
+                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                 </div>
+                 <div class="modal-body">
+                     <p>Para eliminar al usuario <strong>{{ usuario.username }}</strong>, escribe su nombre de usuario a continuación:</p>
+                     <input type="text" name="confirm_username" class="form-control" placeholder="Escribe el nombre de usuario" required>
+                 </div>
+                 <div class="modal-footer">
+                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                     <button type="submit" class="btn btn-danger">Eliminar</button>
+                 </div>
+             </form>
+         </div>
+     </div>
+ </div>
+ {% endblock %}
