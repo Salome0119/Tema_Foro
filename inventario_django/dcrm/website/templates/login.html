@@ -7,55 +7,114 @@
         display: flex;
         align-items: center;
         justify-content: center;
+        padding: 20px 0;
     }
     .login-card {
         width: 100%;
-        max-width: 400px;
+        max-width: 450px;
         border: none;
-        border-radius: 15px;
+        border-radius: 20px;
         overflow: hidden;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        box-shadow: 0 20px 60px rgba(75, 46, 131, 0.15);
         transition: transform 0.3s ease;
     }
     .login-card:hover {
         transform: translateY(-5px);
     }
     .login-header {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        padding: 30px;
+        background: linear-gradient(135deg, #CDC1FF 0%, #B39DDB 100%);
+        padding: 28px;
         text-align: center;
+        position: relative;
+        overflow: hidden;
+    }
+    .login-header::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -50%;
+        width: 100%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(255,255,255,0.2) 0%, transparent 70%);
+        pointer-events: none;
+    }
+    .login-header i {
+        position: relative;
+        z-index: 1;
+    }
+    .login-header h3 {
+        position: relative;
+        z-index: 1;
+    }
+    .login-header p {
+        position: relative;
+        z-index: 1;
     }
     .login-body {
-        padding: 30px;
+        padding: 24px 30px 30px;
         background: white;
     }
     .form-control:focus {
-        border-color: #667eea;
-        box-shadow: 0 0 0 0.25rem rgba(102, 126, 234, 0.25);
+        border-color: #B39DDB;
+        box-shadow: 0 0 0 0.25rem rgba(179, 157, 219, 0.35);
     }
     .btn-login {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(135deg, #B39DDB 0%, #9C7CC0 100%);
         border: none;
         padding: 12px;
         font-weight: 600;
         text-transform: uppercase;
-        letter-spacing: 0.5px;
+        letter-spacing: 0.8px;
         transition: all 0.3s ease;
+        color: white;
     }
     .btn-login:hover {
-        background: linear-gradient(135deg, #5a6fd6 0%, #6a4190 100%);
+        background: linear-gradient(135deg, #9C7CC0 0%, #7B5CB8 100%);
         transform: translateY(-2px);
-        box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        box-shadow: 0 5px 15px rgba(179, 157, 219, 0.4);
     }
     .input-group-text {
-        background-color: #f8f9fa;
-        border-color: #ced4da;
+        background: linear-gradient(135deg, #f5f0ff 0%, #ece4ff 100%);
+        border: 1px solid #e8e0f5;
         border-right: none;
+        color: #7B5CB8;
+        font-weight: 500;
     }
     .form-control {
         border-left: none;
         border-top-right-radius: 0;
         border-bottom-right-radius: 0;
+        border: 1px solid #e8e0f5;
+        transition: all 0.2s ease;
+    }
+    .form-control:focus {
+        border-color: #B39DDB;
+        box-shadow: none;
+    }
+    .form-label {
+        color: #5a4a82;
+        font-weight: 600;
+        font-size: 0.85rem;
+        margin-bottom: 0.3rem;
+    }
+    .form-label i {
+        color: #B39DDB;
+        font-size: 0.8rem;
+    }
+    .text-danger {
+        font-size: 0.78rem;
+        margin-top: 0.25rem;
+    }
+    .alert {
+        border-radius: 10px;
+        border: none;
+        font-size: 0.85rem;
+    }
+    .btn-close {
+        opacity: 0.6;
+    }
+    .btn-close:hover {
+        opacity: 1;
     }
 </style>
 
@@ -83,32 +142,28 @@
             
             <form method="POST" action="{% url 'login' %}">
                 {% csrf_token %}
-                <div class="mb-4">
-                    <label for="username" class="form-label fw-semibold"><i class="bi bi-person me-1"></i>{{ form.username.label }}</label>
+                <div class="mb-3">
+                    <label for="username" class="form-label fw-semibold"><i class="bi bi-person me-1"></i>Usuario</label>
                     <div class="input-group">
                         <span class="input-group-text"><i class="bi bi-person"></i></span>
                         {{ form.username }}
                     </div>
                     {% if form.username.errors %}
-                        <div class="text-danger mt-1">
-                            {{ form.username.errors|first }}
-                        </div>
+                        <div class="text-danger mt-1">{{ form.username.errors|first }}</div>
                     {% endif %}
                 </div>
-                <div class="mb-4">
-                    <label for="password" class="form-label fw-semibold"><i class="bi bi-lock me-1"></i>{{ form.password.label }}</label>
+                <div class="mb-3">
+                    <label for="password" class="form-label fw-semibold"><i class="bi bi-lock me-1"></i>Contraseña</label>
                     <div class="input-group">
                         <span class="input-group-text"><i class="bi bi-lock"></i></span>
                         {{ form.password }}
                     </div>
                     {% if form.password.errors %}
-                        <div class="text-danger mt-1">
-                            {{ form.password.errors|first }}
-                        </div>
+                        <div class="text-danger mt-1">{{ form.password.errors|first }}</div>
                     {% endif %}
                 </div>
                 <div class="d-grid">
-                    <button type="submit" class="btn btn-primary btn-login w-100">
+                    <button type="submit" class="btn btn-login w-100">
                         <i class="bi bi-box-arrow-in-right me-2"></i>Iniciar Sesión
                     </button>
                 </div>
