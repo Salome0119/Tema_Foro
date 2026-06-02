@@ -3,82 +3,162 @@
 {% block content %}
 <div class="container py-5" style="background-color:#E6E6FA;">
     <div class="row justify-content-center">
-        <div class="col-md-12">
-            <div class="card border-0 shadow-lg" style="border-radius: 20px; overflow: hidden;">
-                <div class="card-header text-white text-center py-4" style="background: linear-gradient(135deg, #CDC1FF 0%, #B39DDB 100%);">
-                    <h3 class="fw-bold mb-0"><i class="bi bi-person-circle me-2"></i>Detalles del Usuario: {{ usuario.username }}</h3>
+        <div class="col-lg-10">
+            <div class="card border-0 shadow-lg" style="border-radius: 24px; overflow: hidden;">
+                <div class="card-header text-white py-4" style="background: linear-gradient(135deg, #CDC1FF 0%, #B39DDB 100%); border: none;">
+                    <div class="d-flex align-items-center justify-content-between px-4">
+                        <div>
+                            <div class="d-flex align-items-center mb-2">
+                                <div class="rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 64px; height: 64px; background: rgba(255,255,255,0.25); color: white; font-weight: 700; font-size: 1.75rem; letter-spacing: 1px;">
+                                    {{ usuario.username|first|upper }}
+                                </div>
+                                <div>
+                                    <h3 class="fw-bold mb-0 text-white">{{ usuario.get_full_name|default:usuario.username }}</h3>
+                                    <span class="text-white-50">@{{ usuario.username }}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="text-end">
+                            {% if usuario.is_staff %}
+                                <span class="badge bg-white text-dark px-3 py-2 rounded-pill fw-semibold"><i class="bi bi-shield-check me-1"></i>Staff</span>
+                            {% endif %}
+                            {% if usuario.is_superuser %}
+                                <span class="badge bg-white text-dark px-3 py-2 rounded-pill fw-semibold ms-1"><i class="bi bi-star-fill me-1"></i>Superusuario</span>
+                            {% endif %}
+                        </div>
+                    </div>
                 </div>
                 <div class="card-body p-5">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <h5 class="fw-bold text-primary mb-3">Información del Usuario</h5>
-                            <ul class="list-unstyled text-muted">
-                                <li class="mb-2"><strong>ID:</strong> {{ usuario.id }}</li>
-                                <li class="mb-2"><strong>Usuario:</strong> {{ usuario.username }}</li>
-                                <li class="mb-2"><strong>Email:</strong> {{ usuario.email|default:"No especificado" }}</li>
-                                <li class="mb-2"><strong>Nombre:</strong> {{ usuario.first_name|default:"No especificado" }}</li>
-                                <li class="mb-2"><strong>Apellido:</strong> {{ usuario.last_name|default:"No especificado" }}</li>
-                                <li class="mb-2"><strong>Fecha registro:</strong> {{ usuario.date_joined|date:"d/m/Y H:i" }}</li>
-                                <li class="mb-2"><strong>Último login:</strong> {{ usuario.last_login|date:"d/m/Y H:i"|default:"Nunca" }}</li>
-                                <li class="mb-2"><strong>Activo:</strong> {{ usuario.is_active|yesno:"Sí,No" }}</li>
-                                <li class="mb-2"><strong>Staff:</strong> {{ usuario.is_staff|yesno:"Sí,No" }}</li>
-                            </ul>
+                    {% if messages %}
+                    <div class="mb-4">
+                        {% for message in messages %}
+                            <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show" role="alert">
+                                {% if message.tags == 'success' %}
+                                    <i class="bi bi-check-circle-fill me-2"></i>
+                                {% else %}
+                                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                                {% endif %}
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                    <div class="row g-4">
+                        <div class="col-md-4">
+                            <div class="p-4 rounded-3 h-100" style="background: linear-gradient(135deg, #f8f6ff 0%, #f0ecef 100%); border: 1px solid #e8e0f5;">
+                                <h6 class="fw-bold text-primary mb-3"><i class="bi bi-person-badge me-2"></i>Información</h6>
+                                <div class="mb-3">
+                                    <small class="text-muted d-block">ID</small>
+                                    <span class="fw-semibold">{{ usuario.id }}</span>
+                                </div>
+                                <div class="mb-3">
+                                    <small class="text-muted d-block">Correo electrónico</small>
+                                    <span class="fw-semibold">{{ usuario.email|default:"—" }}</span>
+                                </div>
+                                <div class="mb-3">
+                                    <small class="text-muted d-block">Fecha de registro</small>
+                                    <span class="fw-semibold">{{ usuario.date_joined|date:"d/m/Y H:i" }}</span>
+                                </div>
+                                <div class="mb-3">
+                                    <small class="text-muted d-block">Último acceso</small>
+                                    <span class="fw-semibold">{{ usuario.last_login|date:"d/m/Y H:i"|default:"Nunca" }}</span>
+                                </div>
+                            </div>
                         </div>
-                        <div class="col-md-6">
-                            <h5 class="fw-bold text-primary mb-3">Perfil</h5>
-                            {% if usuario.perfil %}
-                            <ul class="list-unstyled text-muted">
-                                <li class="mb-2"><strong>Teléfono:</strong> {{ usuario.perfil.telefono|default:"No especificado" }}</li>
-                                <li class="mb-2"><strong>Dirección:</strong> {{ usuario.perfil.direccion|default:"No especificada" }}</li>
-                                <li class="mb-2"><strong>Fecha de creación de perfil:</strong> {{ usuario.perfil.fecha_creacion|date:"d/m/Y H:i" }}</li>
-                            </ul>
-                            {% else %}
-                            <p class="text-muted">Sin perfil asociado.</p>
-                            {% endif %}
+                        <div class="col-md-4">
+                            <div class="p-4 rounded-3 h-100" style="background: linear-gradient(135deg, #f8f6ff 0%, #f0ecef 100%); border: 1px solid #e8e0f5;">
+                                <h6 class="fw-bold text-primary mb-3"><i class="bi bi-person-lines-fill me-2"></i>Datos personales</h6>
+                                <div class="mb-3">
+                                    <small class="text-muted d-block">Nombre</small>
+                                    <span class="fw-semibold">{{ usuario.first_name|default:"—" }}</span>
+                                </div>
+                                <div class="mb-3">
+                                    <small class="text-muted d-block">Apellido</small>
+                                    <span class="fw-semibold">{{ usuario.last_name|default:"—" }}</span>
+                                </div>
+                                {% if usuario.perfil %}
+                                <div class="mb-3">
+                                    <small class="text-muted d-block">Teléfono</small>
+                                    <span class="fw-semibold">{{ usuario.perfil.telefono|default:"—" }}</span>
+                                </div>
+                                {% else %}
+                                <div class="mb-3">
+                                    <small class="text-muted d-block">Teléfono</small>
+                                    <span class="fw-semibold text-muted">—</span>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="p-4 rounded-3 h-100" style="background: linear-gradient(135deg, #f8f6ff 0%, #f0ecef 100%); border: 1px solid #e8e0f5;">
+                                <h6 class="fw-bold text-primary mb-3"><i class="bi bi-geo-alt-fill me-2"></i>Ubicación</h6>
+                                {% if usuario.perfil %}
+                                <div class="mb-3">
+                                    <small class="text-muted d-block">Dirección</small>
+                                    <span class="fw-semibold">{{ usuario.perfil.direccion|default:"—" }}</span>
+                                </div>
+                                <div class="mb-3">
+                                    <small class="text-muted d-block">Departamento</small>
+                                    <span class="fw-semibold">{{ usuario.perfil.departamento|default:"—" }}</span>
+                                </div>
+                                <div class="mb-3">
+                                    <small class="text-muted d-block">Municipio</small>
+                                    <span class="fw-semibold">{{ usuario.perfil.municipio|default:"—" }}</span>
+                                </div>
+                                <div class="mb-3">
+                                    <small class="text-muted d-block">Código Postal</small>
+                                    <span class="fw-semibold">{{ usuario.perfil.codigo_postal|default:"—" }}</span>
+                                </div>
+                                {% else %}
+                                <div class="mb-3"><small class="text-muted d-block">Dirección</small><span class="fw-semibold text-muted">—</span></div>
+                                <div class="mb-3"><small class="text-muted d-block">Departamento</small><span class="fw-semibold text-muted">—</span></div>
+                                <div class="mb-3"><small class="text-muted d-block">Municipio</small><span class="fw-semibold text-muted">—</span></div>
+                                <div class="mb-3"><small class="text-muted d-block">Código Postal</small><span class="fw-semibold text-muted">—</span></div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    <hr class="my-5">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <a href="{% url 'home' %}" class="btn rounded-pill px-4 fw-semibold" style="background: linear-gradient(135deg, #CDC1FF 0%, #B39DDB 100%); color: white; border: none;">
+                            <i class="bi bi-arrow-left me-2"></i>Volver
+                        </a>
+                        {% if user.is_superuser and usuario != user %}
+                        <div class="d-flex gap-2">
+                            <a href="{% url 'customer_update' usuario.pk %}" class="btn rounded-pill px-4 fw-semibold" style="background: linear-gradient(135deg, #CDC1FF 0%, #B39DDB 100%); color: white; border: none;">
+                                <i class="bi bi-pencil me-2"></i>Actualizar
+                            </a>
+                            <button type="button" class="btn btn-danger rounded-pill px-4 fw-semibold" data-bs-toggle="modal" data-bs-target="#deleteModal">
+                                <i class="bi bi-trash me-2"></i>Eliminar Usuario
+                            </button>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
-                     </div>
-                     <hr class="my-4">
-                     <div class="d-flex justify-content-between">
-                         <a href="{% url 'home' %}" class="btn rounded-pill" style="background: linear-gradient(135deg, #CDC1FF 0%, #B39DDB 100%); color: white;">
-                             <i class="bi bi-arrow-left me-2"></i>Volver
-                         </a>
-                         {% if user.is_superuser %}
-                         <div class="d-flex gap-2">
-                             <a href="{% url 'customer_update' usuario.pk %}" class="btn rounded-pill fw-semibold" style="background: linear-gradient(135deg, #CDC1FF 0%, #B39DDB 100%); color: white; border: none;">
-                                 <i class="bi bi-pencil me-2"></i>Actualizar
-                             </a>
-                             <button type="button" class="btn btn-danger rounded-pill fw-semibold" data-bs-toggle="modal" data-bs-target="#deleteModal">
-                                 <i class="bi bi-trash me-2"></i>Eliminar Usuario
-                             </button>
-                         </div>
-                         {% endif %}
-                     </div>
-                 </div>
-             </div>
-         </div>
-     </div>
- </div>
- 
- <!-- Modal de Confirmación -->
- <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
-     <div class="modal-dialog">
-         <div class="modal-content">
-             <form method="POST">
-                 {% csrf_token %}
-                 <div class="modal-header" style="background: linear-gradient(135deg, #CDC1FF 0%, #B39DDB 100%); color: white;">
-                     <h5 class="modal-title" id="deleteModalLabel">Confirmar Eliminación</h5>
-                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                 </div>
-                 <div class="modal-body">
-                     <p>Para eliminar al usuario <strong>{{ usuario.username }}</strong>, escribe su nombre de usuario a continuación:</p>
-                     <input type="text" name="confirm_username" class="form-control" placeholder="Escribe el nombre de usuario" required>
-                 </div>
-                 <div class="modal-footer">
-                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                     <button type="submit" class="btn btn-danger">Eliminar</button>
-                 </div>
-             </form>
-         </div>
-     </div>
- </div>
- {% endblock %}
+  <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+          <div class="modal-content">
+              <form method="POST" action="{% url 'delete_record' usuario.pk %}">
+                  {% csrf_token %}
+                  <div class="modal-header" style="background: linear-gradient(135deg, #CDC1FF 0%, #B39DDB 100%); color: white;">
+                      <h5 class="modal-title" id="deleteModalLabel">Confirmar Eliminación</h5>
+                      <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                  </div>
+                  <div class="modal-body">
+                      <p>Para eliminar al usuario <strong>{{ usuario.username }}</strong>, escribe su nombre de usuario a continuación:</p>
+                      <input type="text" name="confirm_username" class="form-control" placeholder="Escribe el nombre de usuario" required>
+                  </div>
+                  <div class="modal-footer">
+                      <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                      <button type="submit" class="btn btn-danger">Eliminar</button>
+                  </div>
+              </form>
+          </div>
+      </div>
+  </div>
+{% endblock %}
