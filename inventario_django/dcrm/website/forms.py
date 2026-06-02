@@ -180,13 +180,69 @@ class RegisterForm(UserCreationForm):
                 raise forms.ValidationError("Debe contener al menos un número.")
         return password
 
+class UserEditForm(forms.ModelForm):
+    class Meta:
+        model = User
+        fields = ['username', 'email', 'first_name', 'last_name']
+        labels = {
+            'username': 'Usuario',
+            'email': 'Correo electrónico',
+            'first_name': 'Nombre',
+            'last_name': 'Apellido',
+        }
+        widgets = {
+            'username': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Usuario'}),
+            'email': forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'Correo electrónico'}),
+            'first_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nombre'}),
+            'last_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Apellido'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['first_name'].required = False
+        self.fields['last_name'].required = False
+
+    def clean_username(self):
+        import re
+        username = self.cleaned_data.get('username')
+        if not re.match(r'^[a-zA-Z0-9_]{4,}$', username):
+            raise forms.ValidationError(
+                "El usuario debe tener al menos 4 caracteres y solo puede contener letras, números y guiones bajos."
+            )
+        if User.objects.filter(username__iexact=username).exclude(pk=self.instance.pk).exists():
+            raise forms.ValidationError("Un usuario con ese nombre ya existe.")
+        return username
+
+    def clean_first_name(self):
+        import re
+        first_name = self.cleaned_data.get('first_name')
+        if first_name and not re.match(r'^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$', first_name):
+            raise forms.ValidationError("El nombre solo puede contener letras y espacios.")
+        return first_name
+
+    def clean_last_name(self):
+        import re
+        last_name = self.cleaned_data.get('last_name')
+        if last_name and not re.match(r'^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$', last_name):
+            raise forms.ValidationError("El apellido solo puede contener letras y espacios.")
+        return last_name
+
+    def clean_email(self):
+        email = self.cleaned_data.get('email')
+        if User.objects.filter(email=email).exclude(pk=self.instance.pk).exists():
+            raise forms.ValidationError("El correo ya está registrado por otro usuario.")
+        return email
+
 class PerfilForm(forms.ModelForm):
     class Meta:
         model = Perfil
-        fields = ['telefono', 'direccion']
+        fields = ['telefono', 'direccion', 'departamento', 'municipio', 'codigo_postal']
         labels = {
             'telefono': 'Teléfono',
-            'direccion': 'Dirección'
+            'direccion': 'Dirección',
+            'departamento': 'Departamento',
+            'municipio': 'Municipio',
+            'codigo_postal': 'Código Postal',
         }
 
     def __init__(self, *args, **kwargs):

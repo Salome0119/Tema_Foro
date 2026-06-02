@@ -18,16 +18,123 @@
                     </div>
                     <div class="row g-0">
                         <div class="col-md-12 p-5">
-                            <h3 class="fw-bold text-primary mb-3">Datos de Usuarios</h3>
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h3 class="fw-bold text-primary mb-0">Datos de Usuarios</h3>
+                                <a href="{% url 'add_record' %}" class="btn btn-primary rounded-pill fw-semibold" style="background: linear-gradient(135deg, #CDC1FF 0%, #B39DDB 100%); border: none; color: white;">
+                                    <i class="bi bi-person-plus me-1"></i>Agregar Usuario
+                                </a>
+                            </div>
+                            <form method="GET" action="{% url 'home' %}" class="row g-3 mb-4">
+                                <div class="col-md-4">
+                                    <label class="form-label fw-semibold"><i class="bi bi-hash me-1"></i>ID de usuario</label>
+                                    <input type="number" name="id" value="{{ id_filtro }}" class="form-control" placeholder="Buscar por ID">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label fw-semibold"><i class="bi bi-person-gear me-1"></i>Rol</label>
+                                    <select name="rol" class="form-select">
+                                        <option value="">Todos los roles</option>
+                                        <option value="normal" {% if rol_filtro == 'normal' %}selected{% endif %}>Usuario normal</option>
+                                        <option value="staff" {% if rol_filtro == 'staff' %}selected{% endif %}>Staff</option>
+                                        <option value="superuser" {% if rol_filtro == 'superuser' %}selected{% endif %}>Superusuario</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4 d-flex align-items-end">
+                                    <button type="submit" class="btn w-100 rounded-pill fw-semibold" style="background: linear-gradient(135deg, #CDC1FF 0%, #B39DDB 100%); color: white; border: none;">
+                                        <i class="bi bi-search me-1"></i>Buscar
+                                    </button>
+                                </div>
+                            </form>
+                            {% if messages %}
+                            <div class="mb-4">
+                                {% for message in messages %}
+                                    <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show" role="alert">
+                                        {% if message.tags == 'success' %}
+                                            <i class="bi bi-check-circle-fill me-2"></i>
+                                        {% else %}
+                                            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                                        {% endif %}
+                                        {{ message }}
+                                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
                             {% if usuarios %}
                             <div class="table-responsive">
-                                <table class="table table-striped">
+                                <style>
+                                    .custom-table {
+                                        border-collapse: separate;
+                                        border-spacing: 0;
+                                        border-radius: 12px;
+                                        overflow: hidden;
+                                    }
+                                    .custom-table thead th {
+                                        background: linear-gradient(135deg, #B39DDB 0%, #9C7CC0 100%);
+                                        color: white;
+                                        font-weight: 600;
+                                        text-transform: uppercase;
+                                        font-size: 0.85rem;
+                                        letter-spacing: 0.5px;
+                                        padding: 14px 16px;
+                                        border: none;
+                                        white-space: nowrap;
+                                    }
+                                    .custom-table tbody td {
+                                        padding: 12px 16px;
+                                        vertical-align: middle;
+                                        border-bottom: 1px solid #f0f0f0;
+                                        background-color: #fff;
+                                        transition: background-color 0.2s ease;
+                                    }
+                                    .custom-table tbody tr {
+                                        transition: all 0.2s ease;
+                                    }
+                                    .custom-table tbody tr:hover td {
+                                        background-color: #f8f6ff;
+                                    }
+                                    .custom-table tbody tr:last-child td {
+                                        border-bottom: none;
+                                    }
+                                    .info-btn {
+                                        background: linear-gradient(135deg, #CDC1FF 0%, #B39DDB 100%);
+                                        color: white;
+                                        border: none;
+                                        padding: 6px 14px;
+                                        border-radius: 20px;
+                                        font-size: 0.85rem;
+                                        font-weight: 500;
+                                        text-decoration: none;
+                                        transition: all 0.3s ease;
+                                        box-shadow: 0 2px 4px rgba(179, 157, 219, 0.25);
+                                    }
+                                    .info-btn:hover {
+                                        transform: translateY(-2px);
+                                        box-shadow: 0 5px 15px rgba(179, 157, 219, 0.4);
+                                        color: white;
+                                    }
+                                    .empty-state {
+                                        text-align: center;
+                                        padding: 60px 20px;
+                                        color: #9C7CC0;
+                                    }
+                                    .empty-state i {
+                                        font-size: 3rem;
+                                        margin-bottom: 15px;
+                                        opacity: 0.7;
+                                    }
+                                </style>
+                                <table class="table custom-table">
                                     <thead>
                                         <tr>
                                             <th>Usuario</th>
                                             <th>Email</th>
                                             <th>Nombre</th>
                                             <th>Apellido</th>
+                                            <th>Teléfono</th>
+                                            <th>Dirección</th>
+                                            <th>Departamento</th>
+                                            <th>Municipio</th>
+                                            <th>Código Postal</th>
                                             <th>Fecha registro</th>
                                             <th>Acciones</th>
                                         </tr>
@@ -35,23 +142,74 @@
                                     <tbody>
                                         {% for usuario in usuarios %}
                                         <tr>
-                                            <td>{{ usuario.username }}</td>
-                                            <td>{{ usuario.email|default:"No especificado" }}</td>
-                                            <td>{{ usuario.first_name|default:"No especificado" }}</td>
-                                            <td>{{ usuario.last_name|default:"No especificado" }}</td>
-                                            <td>{{ usuario.date_joined|date:"d/m/Y H:i" }}</td>
-<td>
-                                <a href="{% url 'customer_record' usuario.pk %}" class="btn btn-sm rounded-pill fw-semibold" style="background: linear-gradient(135deg, #CDC1FF 0%, #B39DDB 100%); color: white; border: none;">
-                                    <i class="bi bi-info-circle me-1"></i>Info
-                                </a>
-                            </td>
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    <div class="rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 32px; height: 32px; background: linear-gradient(135deg, #CDC1FF 0%, #B39DDB 100%); color: white; font-weight: 600; font-size: 0.85rem;">
+                                                        {{ usuario.username|first|upper }}
+                                                    </div>
+                                                    <span class="fw-semibold text-dark">{{ usuario.username }}</span>
+                                                </div>
+                                            </td>
+                                            <td class="text-muted">{{ usuario.email|default:"No especificado"|truncatechars:25 }}</td>
+                                            <td>{{ usuario.first_name|default:"—" }}</td>
+                                            <td>{{ usuario.last_name|default:"—" }}</td>
+                                            <td class="text-muted">{{ usuario.perfil.telefono|default:"—" }}</td>
+                                            <td class="text-muted" style="max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ usuario.perfil.direccion|default:"—" }}</td>
+                                            <td>{{ usuario.perfil.departamento|default:"—" }}</td>
+                                            <td>{{ usuario.perfil.municipio|default:"—" }}</td>
+                                            <td>{{ usuario.perfil.codigo_postal|default:"—" }}</td>
+                                            <td>
+                                                <span class="badge" style="background: #f0ecef; color: #6644b8; padding: 6px 10px; border-radius: 20px; font-weight: 500;">
+                                                    {{ usuario.date_joined|date:"d/m/Y" }}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <a href="{% url 'customer_record' usuario.pk %}" class="info-btn">
+                                                    <i class="bi bi-info-circle me-1"></i>Info
+                                                </a>
+                                            </td>
                                         </tr>
                                         {% endfor %}
                                     </tbody>
                                 </table>
                             </div>
+                            {% if usuarios.has_other_pages %}
+                            <nav aria-label="Page navigation" class="mt-4">
+                                <ul class="pagination justify-content-center">
+                                    {% if usuarios.has_previous %}
+                                    <li class="page-item">
+                                        <a class="page-link rounded-pill mx-1" href="?page={{ usuarios.previous_page_number }}{% if id_filtro %}&id={{ id_filtro }}{% endif %}{% if rol_filtro %}&rol={{ rol_filtro }}{% endif %}" style="border: none; background: linear-gradient(135deg, #CDC1FF 0%, #B39DDB 100%); color: white;">
+                                            <i class="bi bi-chevron-left"></i> Anterior
+                                        </a>
+                                    </li>
+                                    {% endif %}
+                                    
+                                    {% for page_num in usuarios.paginator.page_range %}
+                                    <li class="page-item {% if usuarios.number == page_num %}active{% endif %}">
+                                        <a class="page-link rounded-pill mx-1 {% if usuarios.number == page_num %}shadow-sm{% endif %}" href="?page={{ page_num }}{% if id_filtro %}&id={{ id_filtro }}{% endif %}{% if rol_filtro %}&rol={{ rol_filtro }}{% endif %}" style="border: none; {% if usuarios.number == page_num %}background: linear-gradient(135deg, #B39DDB 0%, #9C7CC0 100%); color: white;{% else %}background: #f0ecef; color: #6644b8;{% endif %}">
+                                            {{ page_num }}
+                                        </a>
+                                    </li>
+                                    {% endfor %}
+                                    
+                                    {% if usuarios.has_next %}
+                                    <li class="page-item">
+                                        <a class="page-link rounded-pill mx-1" href="?page={{ usuarios.next_page_number }}{% if id_filtro %}&id={{ id_filtro }}{% endif %}{% if rol_filtro %}&rol={{ rol_filtro }}{% endif %}" style="border: none; background: linear-gradient(135deg, #CDC1FF 0%, #B39DDB 100%); color: white;">
+                                            Siguiente <i class="bi bi-chevron-right"></i>
+                                        </a>
+                                    </li>
+                                    {% endif %}
+                                </ul>
+                            </nav>
+                            {% endif %}
                             {% else %}
-                            <p class="text-muted">No hay registros disponibles.</p>
+                            <div class="empty-state">
+                                <div>
+                                    <i class="bi bi-people d-block"></i>
+                                    <h5 class="fw-semibold mt-2">No hay usuarios registrados</h5>
+                                    <p class="text-muted mb-0">Comienza agregando el primer usuario al sistema</p>
+                                </div>
+                            </div>
                             {% endif %}
                         </div>
                     </div>
