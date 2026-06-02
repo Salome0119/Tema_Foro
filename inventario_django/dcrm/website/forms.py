@@ -124,7 +124,32 @@ class RegisterForm(UserCreationForm):
             raise forms.ValidationError(
                 "Un usuario con ese nombre ya existe."
             )
+        import re
+        if not re.match(r'^[a-zA-Z0-9_]{4,}$', username):
+            raise forms.ValidationError(
+                "El usuario debe tener al menos 4 caracteres y solo puede contener letras, números y guiones bajos."
+            )
         return username
+
+    def clean_first_name(self):
+        first_name = self.cleaned_data.get('first_name')
+        if first_name:
+            import re
+            if not re.match(r'^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$', first_name):
+                raise forms.ValidationError(
+                    "El nombre solo puede contener letras y espacios."
+                )
+        return first_name
+
+    def clean_last_name(self):
+        last_name = self.cleaned_data.get('last_name')
+        if last_name:
+            import re
+            if not re.match(r'^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$', last_name):
+                raise forms.ValidationError(
+                    "El apellido solo puede contener letras y espacios."
+                )
+        return last_name
 
     def clean_email(self):
         email = self.cleaned_data.get('email')
@@ -135,7 +160,6 @@ class RegisterForm(UserCreationForm):
         return email
 
     def clean_password2(self):
-        # Verificar que las contraseñas coincidan
         password1 = self.cleaned_data.get("password1")
         password2 = self.cleaned_data.get("password2")
         if password1 and password2 and password1 != password2:
@@ -143,10 +167,17 @@ class RegisterForm(UserCreationForm):
         return password2
 
     def clean_password1(self):
-        # Validar longitud mínima de la contraseña
         password = self.cleaned_data.get("password1")
         if password and len(password) < 8:
             raise forms.ValidationError("Debe contener al menos 8 caracteres.")
+        if password:
+            import re
+            if not re.search(r'[A-Z]', password):
+                raise forms.ValidationError("Debe contener al menos una letra mayúscula.")
+            if not re.search(r'[a-z]', password):
+                raise forms.ValidationError("Debe contener al menos una letra minúscula.")
+            if not re.search(r'[0-9]', password):
+                raise forms.ValidationError("Debe contener al menos un número.")
         return password
 
 class PerfilForm(forms.ModelForm):
