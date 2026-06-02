@@ -15,6 +15,20 @@
             <i class="bi bi-house-door me-1"></i> Inicio
           </a>
         </li>
+        <li class="nav-item">
+          <a class="nav-link btn btn-outline-primary px-3 rounded-pill" href="{% url 'foro' %}"
+            style="color: #5a5a5a; border-color: #E6E6FA;">
+            <i class="bi bi-chat-left-text me-1"></i> Foro
+          </a>
+        </li>
+        {% if user.is_authenticated %}
+        <li class="nav-item">
+          <a class="nav-link btn btn-outline-primary px-3 rounded-pill" href="{% url 'add_record' %}"
+            style="color: #5a5a5a; border-color: #E6E6FA;">
+            <i class="bi bi-person-plus me-1"></i> Agregar Usuario
+          </a>
+        </li>
+        {% endif %}
         {% if user.is_staff %}
         <li class="nav-item">
           <a class="nav-link btn btn-outline-primary px-3 rounded-pill" href="/admin/"
@@ -35,20 +49,20 @@
             </span>
             {{ user.username }}
           </a>
-           <ul class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="navbarDropdown">
-             <li class="px-3 py-2">
-               <div class="fw-semibold" style="color: #000;">{{ user.username }}</div>
-               <small style="color: #000;">{{ user.email }}</small>
-             </li>
-             <li>
-               <hr class="dropdown-divider">
-             </li>
-             <li>
-               <a class="dropdown-item" href="{% url 'logout' %}" style="color: #000;">
-                 <i class="bi bi-box-arrow-right me-2"></i>Cerrar sesión(❁´◡`❁)
-               </a>
-             </li>
-           </ul>
+          <ul class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="navbarDropdown">
+            <li class="px-3 py-2">
+              <div class="fw-semibold" style="color: #000;">{{ user.username }}</div>
+              <small style="color: #000;">{{ user.email }}</small>
+            </li>
+            <li>
+              <hr class="dropdown-divider">
+            </li>
+            <li>
+              <a class="dropdown-item" href="{% url 'logout' %}" style="color: #000;">
+                <i class="bi bi-box-arrow-right me-2"></i>Cerrar sesión(❁´◡`❁)
+              </a>
+            </li>
+          </ul>
         </li>
         {% else %}
         <li class="nav-item">
