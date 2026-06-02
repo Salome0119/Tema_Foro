@@ -244,11 +244,15 @@ class PerfilForm(forms.ModelForm):
             'municipio': 'Municipio',
             'codigo_postal': 'Código Postal',
         }
+        widgets = {
+            'direccion': forms.Textarea(attrs={'class': 'form-control', 'placeholder': 'Dirección', 'rows': 2}),
+        }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         for field_name, field in self.fields.items():
-            field.widget.attrs.update({
-                'class': 'form-control',
-                'placeholder': field.label
-            })
+            if field_name != 'direccion':
+                field.widget.attrs.update({
+                    'class': 'form-control',
+                    'placeholder': field.label
+                })

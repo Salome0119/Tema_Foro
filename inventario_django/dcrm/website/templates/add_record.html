@@ -7,14 +7,15 @@
         display: flex;
         align-items: center;
         justify-content: center;
+        padding: 20px 0;
     }
     .login-card {
         width: 100%;
-        max-width: 500px;
+        max-width: 750px;
         border: none;
-        border-radius: 15px;
+        border-radius: 20px;
         overflow: hidden;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        box-shadow: 0 20px 60px rgba(75, 46, 131, 0.15);
         transition: transform 0.3s ease;
     }
     .login-card:hover {
@@ -22,26 +23,132 @@
     }
     .login-header {
         background: linear-gradient(135deg, #CDC1FF 0%, #B39DDB 100%);
-        padding: 30px;
+        padding: 28px;
         text-align: center;
+        position: relative;
+        overflow: hidden;
+    }
+    .login-header::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -50%;
+        width: 100%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(255,255,255,0.2) 0%, transparent 70%);
+        pointer-events: none;
+    }
+    .login-header i,
+    .login-header h3,
+    .login-header p {
+        position: relative;
+        z-index: 1;
     }
     .login-body {
-        padding: 30px;
+        padding: 24px 30px 30px;
         background: white;
+        max-height: 68vh;
+        overflow-y: auto;
+    }
+    .form-control:focus {
+        border-color: #B39DDB;
+        box-shadow: 0 0 0 0.25rem rgba(179, 157, 219, 0.35);
     }
     .btn-submit {
-        background: linear-gradient(135deg, #CDC1FF 0%, #B39DDB 100%);
+        background: linear-gradient(135deg, #B39DDB 0%, #9C7CC0 100%);
         border: none;
         padding: 12px;
         font-weight: 600;
         text-transform: uppercase;
-        letter-spacing: 0.5px;
+        letter-spacing: 0.8px;
         transition: all 0.3s ease;
+        color: white;
     }
     .btn-submit:hover {
-        background: linear-gradient(135deg, #B39DDB 0%, #9C7CC0 100%);
+        background: linear-gradient(135deg, #9C7CC0 0%, #7B5CB8 100%);
         transform: translateY(-2px);
         box-shadow: 0 5px 15px rgba(179, 157, 219, 0.4);
+    }
+    .input-group-text {
+        background: linear-gradient(135deg, #f5f0ff 0%, #ece4ff 100%);
+        border: 1px solid #e8e0f5;
+        border-right: none;
+        color: #7B5CB8;
+        font-weight: 500;
+    }
+    .form-control {
+        border-left: none;
+        border-top-right-radius: 0;
+        border-bottom-right-radius: 0;
+        border: 1px solid #e8e0f5;
+        transition: all 0.2s ease;
+    }
+    .form-control:focus {
+        border-color: #B39DDB;
+        box-shadow: none;
+    }
+    .section-title {
+        color: #7B5CB8;
+        font-weight: 700;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        padding: 8px 12px;
+        margin-bottom: 14px;
+        margin-top: 4px;
+        background: linear-gradient(135deg, #f5f0ff 0%, #f0ecf8 100%);
+        border-radius: 8px;
+        border-left: 3px solid #B39DDB;
+    }
+    .section-title i {
+        margin-right: 6px;
+    }
+    .form-section {
+        background: #fdfcfd;
+        border-radius: 12px;
+        padding: 18px;
+        margin-bottom: 16px;
+        border: 1px solid #f5f0ff;
+        box-shadow: 0 2px 8px rgba(75, 46, 131, 0.04);
+    }
+    .form-label {
+        color: #5a4a82;
+        font-weight: 600;
+        font-size: 0.85rem;
+        margin-bottom: 0.3rem;
+    }
+    .form-label i {
+        color: #B39DDB;
+        font-size: 0.8rem;
+    }
+    .text-danger {
+        font-size: 0.78rem;
+        margin-top: 0.25rem;
+    }
+    .login-body::-webkit-scrollbar {
+        width: 6px;
+    }
+    .login-body::-webkit-scrollbar-track {
+        background: #f5f0ff;
+        border-radius: 3px;
+    }
+    .login-body::-webkit-scrollbar-thumb {
+        background: #c9b8e8;
+        border-radius: 3px;
+    }
+    .login-body::-webkit-scrollbar-thumb:hover {
+        background: #B39DDB;
+    }
+    .alert {
+        border-radius: 10px;
+        border: none;
+        font-size: 0.85rem;
+    }
+    .btn-close {
+        opacity: 0.6;
+    }
+    .btn-close:hover {
+        opacity: 1;
     }
 </style>
 
@@ -69,123 +176,142 @@
             
             <form method="POST" action="">
                 {% csrf_token %}
-                <div class="mb-3">
-                    <label for="{{ form.username.id_for_label }}" class="form-label fw-semibold"><i class="bi bi-person me-1"></i>{{ form.username.label }}</label>
-                    <div class="input-group">
-                        <span class="input-group-text"><i class="bi bi-person"></i></span>
-                        {{ form.username }}
-                    </div>
-                    {% if form.username.errors %}
-                        <div class="text-danger mt-1">{{ form.username.errors|first }}</div>
-                    {% endif %}
-                </div>
-                <div class="mb-3">
-                    <label for="{{ form.email.id_for_label }}" class="form-label fw-semibold"><i class="bi bi-envelope me-1"></i>{{ form.email.label }}</label>
-                    <div class="input-group">
-                        <span class="input-group-text"><i class="bi bi-envelope"></i></span>
-                        {{ form.email }}
-                    </div>
-                    {% if form.email.errors %}
-                        <div class="text-danger mt-1">{{ form.email.errors|first }}</div>
-                    {% endif %}
-                </div>
-                <div class="row">
-                    <div class="col-md-6 mb-3">
-                        <label for="{{ form.first_name.id_for_label }}" class="form-label fw-semibold"><i class="bi bi-pencil me-1"></i>{{ form.first_name.label }}</label>
+                
+                <div class="form-section">
+                    <h6 class="section-title"><i class="bi bi-person-badge"></i>Datos de Usuario</h6>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.username.id_for_label }}" class="form-label fw-semibold"><i class="bi bi-person me-1"></i>{{ form.username.label }}</label>
                         <div class="input-group">
                             <span class="input-group-text"><i class="bi bi-person"></i></span>
-                            {{ form.first_name }}
+                            {{ form.username }}
                         </div>
-                        {% if form.first_name.errors %}
-                            <div class="text-danger mt-1">{{ form.first_name.errors|first }}</div>
+                        {% if form.username.errors %}
+                            <div class="text-danger mt-1">{{ form.username.errors|first }}</div>
                         {% endif %}
                     </div>
-                    <div class="col-md-6 mb-3">
-                        <label for="{{ form.last_name.id_for_label }}" class="form-label fw-semibold"><i class="bi bi-pencil me-1"></i>{{ form.last_name.label }}</label>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.email.id_for_label }}" class="form-label fw-semibold"><i class="bi bi-envelope me-1"></i>{{ form.email.label }}</label>
                         <div class="input-group">
-                            <span class="input-group-text"><i class="bi bi-person"></i></span>
-                            {{ form.last_name }}
+                            <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+                            {{ form.email }}
                         </div>
-                        {% if form.last_name.errors %}
-                            <div class="text-danger mt-1">{{ form.last_name.errors|first }}</div>
+                        {% if form.email.errors %}
+                            <div class="text-danger mt-1">{{ form.email.errors|first }}</div>
                         {% endif %}
                     </div>
-                </div>
-                <div class="mb-3">
-                    <label for="{{ form.password1.id_for_label }}" class="form-label fw-semibold"><i class="bi bi-lock me-1"></i>{{ form.password1.label }}</label>
-                    <div class="input-group">
-                        <span class="input-group-text"><i class="bi bi-lock"></i></span>
-                        {{ form.password1 }}
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.first_name.id_for_label }}" class="form-label fw-semibold"><i class="bi bi-pencil me-1"></i>{{ form.first_name.label }}</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-person"></i></span>
+                                {{ form.first_name }}
+                            </div>
+                            {% if form.first_name.errors %}
+                                <div class="text-danger mt-1">{{ form.first_name.errors|first }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.last_name.id_for_label }}" class="form-label fw-semibold"><i class="bi bi-pencil me-1"></i>{{ form.last_name.label }}</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-person"></i></span>
+                                {{ form.last_name }}
+                            </div>
+                            {% if form.last_name.errors %}
+                                <div class="text-danger mt-1">{{ form.last_name.errors|first }}</div>
+                            {% endif %}
+                        </div>
                     </div>
-                    {% if form.password1.errors %}
-                        <div class="text-danger mt-1">{{ form.password1.errors|first }}</div>
-                    {% endif %}
-                </div>
-                <div class="mb-4">
-                    <label for="{{ form.password2.id_for_label }}" class="form-label fw-semibold"><i class="bi bi-lock-fill me-1"></i>{{ form.password2.label }}</label>
-                    <div class="input-group">
-                        <span class="input-group-text"><i class="bi bi-lock"></i></span>
-                        {{ form.password2 }}
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.password1.id_for_label }}" class="form-label fw-semibold"><i class="bi bi-lock me-1"></i>{{ form.password1.label }}</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                                {{ form.password1 }}
+                            </div>
+                            {% if form.password1.errors %}
+                                <div class="text-danger mt-1">{{ form.password1.errors|first }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.password2.id_for_label }}" class="form-label fw-semibold"><i class="bi bi-lock-fill me-1"></i>{{ form.password2.label }}</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-lock-fill"></i></span>
+                                {{ form.password2 }}
+                            </div>
+                            {% if form.password2.errors %}
+                                <div class="text-danger mt-1">{{ form.password2.errors|first }}</div>
+                            {% endif %}
+                        </div>
                     </div>
-                    {% if form.password2.errors %}
-                        <div class="text-danger mt-1">{{ form.password2.errors|first }}</div>
-                    {% endif %}
                 </div>
-                <h6 class="fw-bold text-primary mt-4 mb-3"><i class="bi bi-person-badge me-1"></i>Datos de Perfil</h6>
-                <div class="mb-3">
-                    <label for="{{ perfil_form.telefono.id_for_label }}" class="form-label fw-semibold"><i class="bi bi-telephone me-1"></i>Teléfono</label>
-                    <div class="input-group">
-                        <span class="input-group-text"><i class="bi bi-telephone"></i></span>
-                        {{ perfil_form.telefono }}
+                
+                <div class="form-section">
+                    <h6 class="section-title"><i class="bi bi-geo-alt"></i>Datos de Perfil</h6>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ perfil_form.telefono.id_for_label }}" class="form-label fw-semibold"><i class="bi bi-telephone me-1"></i>Teléfono</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-telephone"></i></span>
+                                {{ perfil_form.telefono }}
+                            </div>
+                            {% if perfil_form.telefono.errors %}
+                                <div class="text-danger mt-1">{{ perfil_form.telefono.errors|first }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ perfil_form.codigo_postal.id_for_label }}" class="form-label fw-semibold"><i class="bi bi-envelope me-1"></i>Código Postal</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+                                {{ perfil_form.codigo_postal }}
+                            </div>
+                            {% if perfil_form.codigo_postal.errors %}
+                                <div class="text-danger mt-1">{{ perfil_form.codigo_postal.errors|first }}</div>
+                            {% endif %}
+                        </div>
                     </div>
-                    {% if perfil_form.telefono.errors %}
-                        <div class="text-danger mt-1">{{ perfil_form.telefono.errors|first }}</div>
-                    {% endif %}
-                </div>
-                <div class="mb-3">
-                    <label for="{{ perfil_form.direccion.id_for_label }}" class="form-label fw-semibold"><i class="bi bi-geo-alt me-1"></i>Dirección</label>
-                    <div class="input-group">
-                        <span class="input-group-text"><i class="bi bi-geo-alt"></i></span>
-                        {{ perfil_form.direccion }}
-                    </div>
-                    {% if perfil_form.direccion.errors %}
-                        <div class="text-danger mt-1">{{ perfil_form.direccion.errors|first }}</div>
-                    {% endif %}
-                </div>
-                <div class="row">
-                    <div class="col-md-6 mb-3">
-                        <label for="{{ perfil_form.departamento.id_for_label }}" class="form-label fw-semibold"><i class="bi bi-building me-1"></i>Departamento</label>
+                    
+                    <div class="mb-3">
+                        <label for="{{ perfil_form.direccion.id_for_label }}" class="form-label fw-semibold"><i class="bi bi-geo-alt me-1"></i>Dirección</label>
                         <div class="input-group">
-                            <span class="input-group-text"><i class="bi bi-building"></i></span>
-                            {{ perfil_form.departamento }}
+                            <span class="input-group-text"><i class="bi bi-geo-alt"></i></span>
+                            {{ perfil_form.direccion }}
                         </div>
-                        {% if perfil_form.departamento.errors %}
-                            <div class="text-danger mt-1">{{ perfil_form.departamento.errors|first }}</div>
+                        {% if perfil_form.direccion.errors %}
+                            <div class="text-danger mt-1">{{ perfil_form.direccion.errors|first }}</div>
                         {% endif %}
                     </div>
-                    <div class="col-md-6 mb-3">
-                        <label for="{{ perfil_form.municipio.id_for_label }}" class="form-label fw-semibold"><i class="bi bi-map me-1"></i>Municipio</label>
-                        <div class="input-group">
-                            <span class="input-group-text"><i class="bi bi-map"></i></span>
-                            {{ perfil_form.municipio }}
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ perfil_form.departamento.id_for_label }}" class="form-label fw-semibold"><i class="bi bi-building me-1"></i>Departamento</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-building"></i></span>
+                                {{ perfil_form.departamento }}
+                            </div>
+                            {% if perfil_form.departamento.errors %}
+                                <div class="text-danger mt-1">{{ perfil_form.departamento.errors|first }}</div>
+                            {% endif %}
                         </div>
-                        {% if perfil_form.municipio.errors %}
-                            <div class="text-danger mt-1">{{ perfil_form.municipio.errors|first }}</div>
-                        {% endif %}
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ perfil_form.municipio.id_for_label }}" class="form-label fw-semibold"><i class="bi bi-map me-1"></i>Municipio</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-map"></i></span>
+                                {{ perfil_form.municipio }}
+                            </div>
+                            {% if perfil_form.municipio.errors %}
+                                <div class="text-danger mt-1">{{ perfil_form.municipio.errors|first }}</div>
+                            {% endif %}
+                        </div>
                     </div>
                 </div>
-                <div class="mb-4">
-                    <label for="{{ perfil_form.codigo_postal.id_for_label }}" class="form-label fw-semibold"><i class="bi bi-envelope me-1"></i>Código Postal</label>
-                    <div class="input-group">
-                        <span class="input-group-text"><i class="bi bi-envelope"></i></span>
-                        {{ perfil_form.codigo_postal }}
-                    </div>
-                    {% if perfil_form.codigo_postal.errors %}
-                        <div class="text-danger mt-1">{{ perfil_form.codigo_postal.errors|first }}</div>
-                    {% endif %}
-                </div>
+                
                 <div class="d-grid">
-                    <button type="submit" class="btn btn-submit btn-primary">
+                    <button type="submit" class="btn btn-submit">
                         <i class="bi bi-person-plus-fill me-2"></i>Agregar Usuario
                     </button>
                 </div>
