@@ -12,18 +12,27 @@
                             <div class="text-center">
                                 <i class="bi bi-rocket-takeoff display-3 mb-3"></i>
                                 <h2 class="fw-bold">¡Hola, {{ user.username }}! </h2>
-                                <p class="opacity-75">Bienvenido de nuevo</p>
+                                <p class="opacity-75 mb-2">Bienvenido de nuevo</p>
+                                <span class="badge rounded-pill text-dark" style="background: #fff; color: #6644b8;">{{ rol_usuario }}</span>
                             </div>
                         </div>
                     </div>
                     <div class="row g-0">
                         <div class="col-md-12 p-5">
                             <div class="d-flex justify-content-between align-items-center mb-3">
-                                <h3 class="fw-bold mb-0" style="color: #7B5CB8;">Datos de Usuarios</h3>
+                                <h3 class="fw-bold mb-1" style="color: #7B5CB8;">
+                                    {% if es_admin %}Panel de Administrador{% else %}Mi Perfil{% endif %}
+                                </h3>
+                                <p class="text-muted mb-3">
+                                    {% if es_admin %}Gestiona usuarios, roles y permisos del sistema.{% else %}Consulta la información registrada de tu cuenta.{% endif %}
+                                </p>
+                                {% if es_admin %}
                                 <a href="{% url 'add_record' %}" class="btn btn-primary rounded-pill fw-semibold" style="background: linear-gradient(135deg, #CDC1FF 0%, #B39DDB 100%); border: none; color: white;">
                                     <i class="bi bi-person-plus me-1"></i>Agregar Usuario
                                 </a>
+                                {% endif %}
                             </div>
+                            {% if es_admin %}
                             <form method="GET" action="{% url 'home' %}" class="row g-3 mb-4">
                                 <div class="col-md-4">
                                     <label class="form-label fw-semibold"><i class="bi bi-hash me-1"></i>ID de usuario</label>
@@ -34,7 +43,7 @@
                                     <select name="rol" class="form-select">
                                         <option value="">Todos los roles</option>
                                         <option value="normal" {% if rol_filtro == 'normal' %}selected{% endif %}>Usuario normal</option>
-                                        <option value="staff" {% if rol_filtro == 'staff' %}selected{% endif %}>Staff</option>
+                                        <option value="staff" {% if rol_filtro == 'staff' %}selected{% endif %}>Administrador</option>
                                         <option value="superuser" {% if rol_filtro == 'superuser' %}selected{% endif %}>Superusuario</option>
                                     </select>
                                 </div>
@@ -44,6 +53,7 @@
                                     </button>
                                 </div>
                             </form>
+                            {% endif %}
                             {% if messages %}
                             <div class="mb-4">
                                 {% for message in messages %}
@@ -133,6 +143,7 @@
                                             <th>Email</th>
                                             <th>Nombre</th>
                                             <th>Apellido</th>
+                                            <th>Rol</th>
                                             <th>Teléfono</th>
                                             <th>Dirección</th>
                                             <th>Departamento</th>
@@ -149,11 +160,24 @@
                                             <td class="text-muted" style="max-width: 120px;">{{ usuario.email|truncatechars:18 }}</td>
                                             <td>{{ usuario.first_name|truncatechars:12|default:"—" }}</td>
                                             <td>{{ usuario.last_name|truncatechars:12|default:"—" }}</td>
-                                            <td class="text-muted" style="max-width: 80px;">{{ usuario.perfil.telefono|truncatechars:10|default:"—" }}</td>
-                                            <td class="text-muted" style="max-width: 100px;">{{ usuario.perfil.direccion|truncatechars:12|default:"—" }}</td>
-                                            <td style="max-width: 80px;">{{ usuario.perfil.departamento|truncatechars:10|default:"—" }}</td>
-                                            <td style="max-width: 80px;">{{ usuario.perfil.municipio|truncatechars:10|default:"—" }}</td>
-                                            <td style="max-width: 70px;">{{ usuario.perfil.codigo_postal|truncatechars:8|default:"—" }}</td>
+                                            <td>
+                                                <span class="badge" style="background: #f0ecef; color: #6644b8; padding: 4px 8px; border-radius: 15px; font-size: 0.75rem; font-weight: 500;">
+                                                    {% if usuario.is_superuser %}Superusuario{% elif usuario.is_staff %}Administrador{% else %}Usuario normal{% endif %}
+                                                </span>
+                                            </td>
+                                            {% if usuario.perfil_admin %}
+                                            <td class="text-muted" style="max-width: 80px;">{{ usuario.perfil_admin.telefono|truncatechars:10|default:"—" }}</td>
+                                            <td class="text-muted" style="max-width: 100px;">{{ usuario.perfil_admin.direccion|truncatechars:12|default:"—" }}</td>
+                                            <td style="max-width: 80px;">{{ usuario.perfil_admin.departamento|truncatechars:10|default:"—" }}</td>
+                                            <td style="max-width: 80px;">{{ usuario.perfil_admin.municipio|truncatechars:10|default:"—" }}</td>
+                                            <td style="max-width: 70px;">{{ usuario.perfil_admin.codigo_postal|truncatechars:8|default:"—" }}</td>
+                                            {% else %}
+                                            <td class="text-muted">—</td>
+                                            <td class="text-muted">—</td>
+                                            <td>—</td>
+                                            <td>—</td>
+                                            <td>—</td>
+                                            {% endif %}
                                             <td>
                                                 <span class="badge" style="background: #f0ecef; color: #6644b8; padding: 4px 8px; border-radius: 15px; font-size: 0.75rem; font-weight: 500;">
                                                     {{ usuario.date_joined|date:"d/m/Y" }}
@@ -225,7 +249,7 @@
                         <h2 class="fw-bold mt-3">Django CRM</h2>
                         <p class="text-muted">Ingresa al sistema</p>
                     </div>
-                    <form method="POST" action="{% url 'home' %}">
+                    <form method="POST" action="{% url 'login' %}">
                         {% csrf_token %}
                         <div class="mb-3">
                             <label class="form-label fw-semibold">Usuario</label>
@@ -248,7 +272,7 @@
                         </div>
                     </form>
                     <hr class="my-4">
-                    <p class="text-center mb-0">¿No tienes cuenta? <a href="{% url 'customer_record' %}" class="fw-semibold" style="color: #6644b8;">Registrar usuario</a></p>
+                    <p class="text-center mb-0">¿No tienes cuenta? <a href="{% url 'register' %}" class="fw-semibold" style="color: #6644b8;">Registrar usuario</a></p>
                 </div>
             </div>
         </div>

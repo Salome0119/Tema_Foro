@@ -3,9 +3,23 @@ from django.contrib.auth.models import User
 from .models import Perfil
 
 class UserAdmin(admin.ModelAdmin):
-    list_display = ('username', 'email', 'first_name', 'last_name', 'is_staff', 'date_joined')
+    list_display = ('username', 'email', 'first_name', 'last_name', 'es_admin', 'is_staff', 'date_joined')
     search_fields = ('username', 'email')
     list_filter = ('is_staff', 'is_superuser', 'is_active')
+
+    def es_admin(self, obj):
+        try:
+            perfil = obj.perfil
+        except (AttributeError, Perfil.DoesNotExist):
+            perfil = None
+        if perfil:
+            return perfil.etiqueta_rol()
+        if obj.is_superuser:
+            return 'Superusuario'
+        if obj.is_staff:
+            return 'Administrador'
+        return 'Usuario normal'
+    es_admin.short_description = 'Rol'
 
 class PerfilAdmin(admin.ModelAdmin):
     list_display = ('user', 'telefono', 'direccion', 'fecha_creacion')
