@@ -1,7 +1,6 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
-from django.contrib.auth import authenticate
 from .models import Perfil
 
 class LoginForm(forms.Form):
@@ -69,6 +68,14 @@ class RegisterForm(UserCreationForm):
             'placeholder': 'Apellido'
         })
     )
+    rol = forms.ChoiceField(
+        label="Tipo de cuenta",
+        choices=Perfil.ROL_CHOICES,
+        required=True,
+        widget=forms.Select(attrs={
+            'class': 'form-control'
+        })
+    )
     password1 = forms.CharField(
         label="Contraseña",
         strip=False,
@@ -89,7 +96,7 @@ class RegisterForm(UserCreationForm):
 
     class Meta:
         model = User
-        fields = ["username", "email", "first_name", "last_name", "password1", "password2"]
+        fields = ["username", "email", "first_name", "last_name", "rol", "password1", "password2"]
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -106,6 +113,9 @@ class RegisterForm(UserCreationForm):
         self.fields['last_name'].widget.attrs.update({
             'class': 'form-control',
             'placeholder': 'Apellido'
+        })
+        self.fields['rol'].widget.attrs.update({
+            'class': 'form-control'
         })
         # Sobrescribir mensajes de error en español para las contraseñas
         self.fields['password1'].help_text = ''
@@ -180,10 +190,36 @@ class RegisterForm(UserCreationForm):
                 raise forms.ValidationError("Debe contener al menos un número.")
         return password
 
+
+class AdminRegisterForm(RegisterForm):
+    rol = forms.ChoiceField(
+        label="Rol",
+        choices=Perfil.ROL_CHOICES,
+        required=True,
+        widget=forms.Select(attrs={
+            'class': 'form-control'
+        })
+    )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['rol'].widget.attrs.update({
+            'class': 'form-control'
+        })
+
 class UserEditForm(forms.ModelForm):
+    rol = forms.ChoiceField(
+        label="Rol",
+        choices=Perfil.ROL_CHOICES,
+        required=True,
+        widget=forms.Select(attrs={
+            'class': 'form-control'
+        })
+    )
+
     class Meta:
         model = User
-        fields = ['username', 'email', 'first_name', 'last_name']
+        fields = ['username', 'email', 'first_name', 'last_name', 'rol']
         labels = {
             'username': 'Usuario',
             'email': 'Correo electrónico',
@@ -201,6 +237,21 @@ class UserEditForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.fields['first_name'].required = False
         self.fields['last_name'].required = False
+        if self.instance.pk:
+            perfil, _ = Perfil.objects.get_or_create(user=self.instance)
+            self.fields['rol'].initial = perfil.rol
+
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        rol = self.cleaned_data.get('rol')
+        user.is_staff = rol == Perfil.ROL_ADMIN
+        user.is_superuser = False
+        if commit:
+            user.save()
+            perfil, _ = Perfil.objects.get_or_create(user=user)
+            perfil.rol = rol
+            perfil.save()
+        return user
 
     def clean_username(self):
         import re

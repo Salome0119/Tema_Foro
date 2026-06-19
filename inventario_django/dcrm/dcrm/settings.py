@@ -76,11 +76,27 @@ TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_TZ = True
 
+LOGIN_URL = 'login'
+LOGIN_REDIRECT_URL = 'home'
+LOGOUT_REDIRECT_URL = 'login'
+
 STATIC_URL = 'static/'
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'website', 'templates', 'static')]
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+
 CSRF_TRUSTED_ORIGINS = [
     'https://*.loca.lt',
 ]
+'''
+SECURE_SSL_REDIRECT = True
+
+SESSION_COOKIE_SECURE = True
+#CSRF_COOKIE_SECURE = True
+CSRF_COOKIE_SAMESITE = 'Lax'
+CSRF_COOKIE_HTTPONLY = True
+'''
+SESSION_COOKIE_AGE = 120 # 2 minutos
+SESSION_SAVE_EVERY_REQUEST = True  # Se renueva en cada petición
+SESSION_EXPIRE_AT_BROWSER_CLOSE = False

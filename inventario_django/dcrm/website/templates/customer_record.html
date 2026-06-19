@@ -19,11 +19,12 @@
                             </div>
                         </div>
                         <div class="text-end">
-                            {% if usuario.is_staff %}
-                                <span class="badge bg-white text-dark px-3 py-2 rounded-pill fw-semibold"><i class="bi bi-shield-check me-1"></i>Staff</span>
-                            {% endif %}
                             {% if usuario.is_superuser %}
-                                <span class="badge bg-white text-dark px-3 py-2 rounded-pill fw-semibold ms-1"><i class="bi bi-star-fill me-1"></i>Superusuario</span>
+                                <span class="badge bg-white text-dark px-3 py-2 rounded-pill fw-semibold"><i class="bi bi-star-fill me-1"></i>Superusuario</span>
+                            {% elif usuario.is_staff %}
+                                <span class="badge bg-white text-dark px-3 py-2 rounded-pill fw-semibold"><i class="bi bi-shield-check me-1"></i>Administrador</span>
+                            {% else %}
+                                <span class="badge bg-white text-dark px-3 py-2 rounded-pill fw-semibold"><i class="bi bi-person me-1"></i>Usuario normal</span>
                             {% endif %}
                         </div>
                     </div>
@@ -124,8 +125,8 @@
                         <a href="{% url 'home' %}" class="btn rounded-pill px-4 fw-semibold" style="background: linear-gradient(135deg, #CDC1FF 0%, #B39DDB 100%); color: white; border: none;">
                             <i class="bi bi-arrow-left me-2"></i>Volver
                         </a>
-                        {% if user.is_superuser and usuario != user %}
-                        <div class="d-flex gap-2">
+{% if user.is_staff %}
+                         <div class="d-flex gap-2">
                             <a href="{% url 'customer_update' usuario.pk %}" class="btn rounded-pill px-4 fw-semibold" style="background: linear-gradient(135deg, #CDC1FF 0%, #B39DDB 100%); color: white; border: none;">
                                 <i class="bi bi-pencil me-2"></i>Actualizar
                             </a>

@@ -19,7 +19,7 @@
             <i class="bi bi-chat-left-text me-1"></i> Foro
           </a>
         </li>
-        {% if user.is_authenticated %}
+        {% if user.is_authenticated and user.is_staff %}
         <li class="nav-item">
           <a class="nav-link text-white fw-semibold px-3" href="{% url 'add_record' %}">
             <i class="bi bi-person-plus me-1"></i> Agregar Usuario
@@ -49,6 +49,11 @@
             <li class="px-3 py-2">
               <div class="fw-semibold" style="color: #000;">{{ user.username }}</div>
               <small style="color: #000;">{{ user.email }}</small>
+              <div class="mt-1">
+                <span class="badge rounded-pill text-dark" style="background: #f0ecef; color: #6644b8;">
+                  {% if user.is_superuser %}Superusuario{% elif user.is_staff %}Administrador{% else %}Usuario normal{% endif %}
+                </span>
+              </div>
             </li>
             <li>
               <hr class="dropdown-divider">
