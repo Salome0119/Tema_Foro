@@ -12,6 +12,17 @@ SECRET_KEY = 'django-insecure-qs8&yxa6vzo+3gfqugl2-nxbnl^uf_@x+*po0%b0!6%-o1w@x-
 DEBUG = True
 
 ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'salohenao19@gmail.com'
+EMAIL_HOST_PASSWORD = 'bdxr blzk kndd kfij'
+DEFAULT_FROM_EMAIL = 'salohenao19@gmail.com'
+ADMIN_AUTH_EMAIL = 'salohenao19@gmail.com'
+
+ADMIN_AUTH_EMAIL = os.environ.get('salohenao19@gmail.com', '')
+DEFAULT_FROM_EMAIL = os.environ.get('salohenao19@gmail.com', 'noreply@localhost')
 
 INSTALLED_APPS = [
     'django.contrib.admin',

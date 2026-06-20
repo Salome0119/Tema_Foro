@@ -2,7 +2,7 @@ from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate
-from .models import ComentarioForo, DenunciaForo, Perfil, TemaForo
+from .models import ComentarioForo, DenunciaForo, Perfil, SolicitudAdministrador, TemaForo
 
 class LoginForm(forms.Form):
     username = forms.CharField(
@@ -34,6 +34,10 @@ class LoginForm(forms.Form):
                     "Credenciales inválidas. Por favor verifica tu usuario y contraseña."
                 )
             elif not user.is_active:
+                if SolicitudAdministrador.objects.filter(user=user, estado=SolicitudAdministrador.PENDIENTE).exists():
+                    raise forms.ValidationError(
+                        "Tu cuenta está pendiente de aprobación para acceder como administrador."
+                    )
                 raise forms.ValidationError(
                     "Esta cuenta está desactivada."
                 )
