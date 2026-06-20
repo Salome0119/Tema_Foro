@@ -2,50 +2,172 @@
 
 {% block content %}
 <div class="container py-4" style="background-color:#E6E6FA;">
-    <div class="row justify-content-center">
-        <div class="col-md-10">
+    <div class="row g-4 justify-content-center">
+        <div class="col-lg-4">
             <div class="card border-0 shadow-lg" style="border-radius: 20px; overflow: hidden;">
                 <div class="card-header text-white py-4" style="background: linear-gradient(135deg, #CDC1FF 0%, #B39DDB 100%);">
-                    <h3 class="fw-bold mb-0"><i class="bi bi-chat-left-text me-2"></i>Foro de Publicaciones</h3>
+                    <h3 class="fw-bold mb-0"><i class="bi bi-chat-square-text me-2"></i>Nuevo Tema</h3>
+                </div>
+                <div class="card-body p-4">
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                    <form method="POST" action="{% url 'foro' %}">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold"><i class="bi bi-pencil me-1"></i>{{ form.titulo.label }}</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-pencil"></i></span>
+                                {{ form.titulo }}
+                            </div>
+                            {% if form.titulo.errors %}
+                                <div class="text-danger mt-1">{{ form.titulo.errors|first }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold"><i class="bi bi-chat-left-text me-1"></i>{{ form.contenido.label }}</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-chat-left-text"></i></span>
+                                {{ form.contenido }}
+                            </div>
+                            {% if form.contenido.errors %}
+                                <div class="text-danger mt-1">{{ form.contenido.errors|first }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="d-grid">
+                            <button type="submit" class="btn rounded-pill fw-semibold" style="background: linear-gradient(135deg, #CDC1FF 0%, #B39DDB 100%); color: white; border: none;">
+                                <i class="bi bi-send me-2"></i>Publicar Tema
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-lg" style="border-radius: 20px; overflow: hidden;">
+                <div class="card-header text-white py-4 d-flex justify-content-between align-items-center" style="background: linear-gradient(135deg, #CDC1FF 0%, #B39DDB 100%);">
+                    <div>
+                        <h3 class="fw-bold mb-1"><i class="bi bi-journal-text me-2"></i>{% if es_admin %}Historial de Temas{% else %}Mis Temas{% endif %}</h3>
+                        <p class="mb-0 opacity-75">{% if es_admin %}Consulta y administra todos los temas registrados en el foro.{% else %}Consulta únicamente los temas que has publicado.{% endif %}</p>
+                    </div>
+                    <span class="badge rounded-pill text-dark" style="background: #fff; color: #6644b8;">{{ rol_usuario }}</span>
                 </div>
                 <div class="card-body p-4">
                     <div class="d-flex justify-content-center mb-4">
                         <div class="btn-group">
+                            {% if es_admin %}
                             <a href="{% url 'foro' %}?filtro=todos" class="btn rounded-pill fw-semibold {% if filtro == 'todos' %}active{% endif %}" style="background: linear-gradient(135deg, #CDC1FF 0%, #B39DDB 100%); color: white; border: none;">
-                                <i class="bi bi-list-ul me-2"></i>Todas
+                                <i class="bi bi-list-ul me-2"></i>Todos
                             </a>
+                            {% endif %}
                             <a href="{% url 'foro' %}?filtro=mis" class="btn rounded-pill fw-semibold {% if filtro == 'mis' %}active{% endif %}" style="background: linear-gradient(135deg, #CDC1FF 0%, #B39DDB 100%); color: white; border: none;">
-                                <i class="bi bi-person me-2"></i>Mis Publicaciones
+                                <i class="bi bi-person me-2"></i>Mis Temas
                             </a>
                         </div>
                     </div>
-                    
-                    {% if publicaciones %}
+
+                    {% if temas %}
                     <div class="row g-3">
-                        {% for publicacion in publicaciones %}
+                        {% for tema in temas %}
                         <div class="col-md-12">
-                            <div class="card border-0 shadow-sm">
-                                <div class="card-body">
-                                    <div class="d-flex justify-content-between align-items-start">
+                            <div class="card border-0 shadow-sm" style="border-radius: 18px; overflow: hidden;">
+                                <div class="card-body p-4">
+                                    <div class="d-flex justify-content-between align-items-start gap-3">
                                         <div>
-                                            <h5 class="fw-bold text-primary mb-2">{{ publicacion.titulo }}</h5>
-                                            <p class="text-muted mb-2">{{ publicacion.contenido }}</p>
-                                            <small class="text-muted">
-                                                <i class="bi bi-person me-1"></i>{{ publicacion.autor.username }}
-                                                <i class="bi bi-calendar ms-3 me-1"></i>{{ publicacion.creado|date:"d/m/Y H:i" }}
-                                            </small>
+                                            <h5 class="fw-bold text-primary mb-2">{{ tema.titulo|default:"Sin título" }}</h5>
+                                            <p class="text-muted mb-3" style="white-space: pre-line;">{{ tema.contenido|default:"Sin contenido" }}</p>
+                                            <div class="d-flex flex-wrap gap-2 text-muted small">
+                                                <span class="badge" style="background: #f0ecef; color: #6644b8;">
+                                                    <i class="bi bi-person me-1"></i>{{ tema.id_usuario.username|default:"Usuario eliminado" }}
+                                                </span>
+                                                <span class="badge" style="background: #f0ecef; color: #6644b8;">
+                                                    <i class="bi bi-calendar me-1"></i>{{ tema.fecha_publicacion|date:"d/m/Y H:i" }}
+                                                </span>
+                                                <span class="badge" style="background: #f0ecef; color: #6644b8;">
+                                                    <i class="bi bi-clock me-1"></i>{{ tema.last_update|date:"d/m/Y H:i" }}
+                                                </span>
+                                            </div>
                                         </div>
+                                        {% if tema.puede_editar %}
+                                        <div class="d-flex gap-2 flex-shrink-0">
+                                            <a href="{% url 'tema_foro_update' tema.pk %}" class="btn btn-sm rounded-pill" style="background: #CDC1FF; color: #6644b8;">
+                                                <i class="bi bi-pencil me-1"></i>Editar
+                                            </a>
+                                            <button type="button" class="btn btn-sm rounded-pill btn-danger" data-bs-toggle="modal" data-bs-target="#deleteTemaModal{{ tema.pk }}">
+                                                <i class="bi bi-trash me-1"></i>Eliminar
+                                            </button>
+                                        </div>
+                                        {% endif %}
                                     </div>
                                 </div>
                             </div>
+
+                            {% if tema.puede_editar %}
+                            <div class="modal fade" id="deleteTemaModal{{ tema.pk }}" tabindex="-1" aria-labelledby="deleteTemaModalLabel{{ tema.pk }}" aria-hidden="true">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <form method="POST" action="{% url 'tema_foro_delete' tema.pk %}">
+                                            {% csrf_token %}
+                                            <div class="modal-header" style="background: linear-gradient(135deg, #CDC1FF 0%, #B39DDB 100%); color: white;">
+                                                <h5 class="modal-title" id="deleteTemaModalLabel{{ tema.pk }}">Eliminar Tema</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <p>¿Estás seguro de eliminar el tema <strong>{{ tema.titulo|default:"Sin título" }}</strong>?</p>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                                <button type="submit" class="btn btn-danger">Eliminar</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
                         </div>
                         {% endfor %}
                     </div>
                     {% else %}
                     <div class="text-center py-5">
-                        <i class="bi bi-chat-left-text display-4 text-muted"></i>
-                        <p class="text-muted mt-3">No hay publicaciones disponibles.</p>
+                        <i class="bi bi-journal-text display-4 text-muted"></i>
+                        <p class="text-muted mt-3">No hay temas disponibles.</p>
                     </div>
+                    {% endif %}
+
+                    {% if temas_paginados.has_other_pages %}
+                    <nav aria-label="Page navigation" class="mt-4">
+                        <ul class="pagination justify-content-center">
+                            {% if temas_paginados.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link rounded-pill mx-1" href="?page={{ temas_paginados.previous_page_number }}{{ filtro_query }}" style="border: none; background: linear-gradient(135deg, #CDC1FF 0%, #B39DDB 100%); color: white;">
+                                    <i class="bi bi-chevron-left"></i> Anterior
+                                </a>
+                            </li>
+                            {% endif %}
+
+                            {% for page_num in temas_paginados.paginator.page_range %}
+                            <li class="page-item {% if temas_paginados.number == page_num %}active{% endif %}">
+                                <a class="page-link rounded-pill mx-1 {% if temas_paginados.number == page_num %}shadow-sm{% endif %}" href="?page={{ page_num }}{{ filtro_query }}" style="border: none; {% if temas_paginados.number == page_num %}background: linear-gradient(135deg, #B39DDB 0%, #9C7CC0 100%); color: white;{% else %}background: #f0ecef; color: #6644b8;{% endif %}">
+                                    {{ page_num }}
+                                </a>
+                            </li>
+                            {% endfor %}
+
+                            {% if temas_paginados.has_next %}
+                            <li class="page-item">
+                                <a class="page-link rounded-pill mx-1" href="?page={{ temas_paginados.next_page_number }}{{ filtro_query }}" style="border: none; background: linear-gradient(135deg, #CDC1FF 0%, #B39DDB 100%); color: white;">
+                                    Siguiente <i class="bi bi-chevron-right"></i>
+                                </a>
+                            </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
                     {% endif %}
                 </div>
             </div>
