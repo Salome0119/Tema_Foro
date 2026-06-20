@@ -389,3 +389,52 @@ class DenunciaForoForm(forms.ModelForm):
         if len(motivo) < 10:
             raise forms.ValidationError('El motivo debe tener al menos 10 caracteres.')
         return motivo
+
+
+class PasswordResetRequestForm(forms.Form):
+    email = forms.EmailField(
+        label='Correo electrónico',
+        widget=forms.EmailInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Correo electrónico'
+        })
+    )
+
+
+class PasswordResetConfirmForm(forms.Form):
+    new_password1 = forms.CharField(
+        label='Nueva contraseña',
+        strip=False,
+        widget=forms.PasswordInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Nueva contraseña'
+        })
+    )
+    new_password2 = forms.CharField(
+        label='Confirmar nueva contraseña',
+        strip=False,
+        widget=forms.PasswordInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Confirmar nueva contraseña'
+        })
+    )
+
+    def clean_new_password1(self):
+        password = self.cleaned_data.get('new_password1')
+        if password and len(password) < 8:
+            raise forms.ValidationError('La contraseña debe tener al menos 8 caracteres.')
+        if password and not any(caracter.isupper() for caracter in password):
+            raise forms.ValidationError('La contraseña debe contener al menos una letra mayúscula.')
+        if password and not any(caracter.islower() for caracter in password):
+            raise forms.ValidationError('La contraseña debe contener al menos una letra minúscula.')
+        if password and not any(caracter.isdigit() for caracter in password):
+            raise forms.ValidationError('La contraseña debe contener al menos un número.')
+        return password
+
+    def clean(self):
+        cleaned_data = super().clean()
+        password1 = cleaned_data.get('new_password1')
+        password2 = cleaned_data.get('new_password2')
+        if password1 and password2 and password1 != password2:
+            raise forms.ValidationError('Las contraseñas no coinciden.')
+        return cleaned_data
