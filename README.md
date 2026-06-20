@@ -166,8 +166,3 @@ Estructura detallada de la app `website`
 
 
 
-Notas finales
--------------
-He preparado este README basándome en la estructura actual del repositorio (archivos y carpetas listadas). Si quieres, puedo:
-- Añadir instrucciones exactas sacadas de `settings.py` (por ejemplo, nombres de variables y configuraciones) si me das permiso para leer ese archivo completo.
-- Generar un `.env.example` y/o un `Dockerfile` y `docker-compose.yml` para facilitar despliegue.
