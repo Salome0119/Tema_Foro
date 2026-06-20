@@ -4,6 +4,7 @@ from functools import wraps
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.tokens import default_token_generator
 from django.contrib.auth.models import User
 from django.core.mail import send_mail
 from django.core.paginator import Paginator
@@ -11,8 +12,11 @@ from django.db.models import Count, Q
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
+from django.utils.encoding import force_bytes, force_str
+from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
+from django.views.decorators.http import require_http_methods
 
-from .forms import AdminRegisterForm, ComentarioForoForm, DenunciaForoForm, LoginForm, PerfilForm, RegisterForm, TemaForoForm, UserEditForm
+from .forms import AdminRegisterForm, ComentarioForoForm, DenunciaForoForm, LoginForm, PasswordResetConfirmForm, PasswordResetRequestForm, PerfilForm, RegisterForm, TemaForoForm, UserEditForm
 from .models import ComentarioForo, DenunciaForo, Perfil, ReaccionForo, SolicitudAdministrador, TemaForo
 
 
@@ -241,6 +245,7 @@ def solicitudes_admin(request):
 
 
 @admin_required
+@require_http_methods(["POST"])
 def aprobar_admin(request, pk):
     solicitud = get_object_or_404(SolicitudAdministrador, pk=pk)
     if request.method == 'POST':
@@ -253,6 +258,7 @@ def aprobar_admin(request, pk):
 
 
 @admin_required
+@require_http_methods(["POST"])
 def rechazar_admin(request, pk):
     solicitud = get_object_or_404(SolicitudAdministrador, pk=pk)
     if request.method == 'POST':
@@ -374,6 +380,69 @@ def logout_user(request):
     return redirect('login')
 
 
+def recuperar_contrasena(request):
+    if request.method == 'POST':
+        form = PasswordResetRequestForm(request.POST)
+        if form.is_valid():
+            email = form.cleaned_data.get('email')
+            usuarios = User.objects.filter(email__iexact=email, is_active=True)
+            correo_enviado = False
+            if usuarios.exists():
+                for usuario in usuarios:
+                    uid = urlsafe_base64_encode(force_bytes(usuario.pk))
+                    token = default_token_generator.make_token(usuario)
+                    reset_url = request.build_absolute_uri(reverse('password_reset_confirm', args=[uid, token]))
+                    asunto = 'Recuperación de contraseña'
+                    mensaje = (
+                        f'Hola {usuario.username},\n\n'
+                        f'Has solicitado recuperar tu contraseña.\n\n'
+                        f'Usa este enlace para crear una nueva contraseña:\n{reset_url}\n\n'
+                        f'Si no solicitaste este cambio, puedes ignorar este correo.'
+                    )
+                    try:
+                        send_mail(asunto, mensaje, settings.DEFAULT_FROM_EMAIL, [usuario.email], fail_silently=False)
+                        correo_enviado = True
+                    except Exception:
+                        correo_enviado = False
+            if correo_enviado:
+                messages.success(request, 'Se envió un enlace de recuperación a tu correo.')
+            else:
+                messages.warning(request, 'No se pudo enviar el correo de recuperación. Verifica la configuración SMTP.')
+            return redirect('login')
+    else:
+        form = PasswordResetRequestForm()
+    return render(request, 'password_reset_request.html', {
+        'form': form,
+        'rol_usuario': etiqueta_rol(request.user) if request.user.is_authenticated else 'Usuario normal',
+    })
+
+
+def recuperar_contrasena_confirmar(request, uidb64, token):
+    try:
+        uid = force_str(urlsafe_base64_decode(uidb64))
+        usuario = User.objects.get(pk=uid)
+    except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+        usuario = None
+
+    if usuario is not None and default_token_generator.check_token(usuario, token):
+        if request.method == 'POST':
+            form = PasswordResetConfirmForm(request.POST)
+            if form.is_valid():
+                usuario.set_password(form.cleaned_data.get('new_password1'))
+                usuario.save()
+                messages.success(request, 'Contraseña actualizada correctamente. Ahora puedes iniciar sesión.')
+                return redirect('login')
+        else:
+            form = PasswordResetConfirmForm()
+        return render(request, 'password_reset_confirm.html', {
+            'form': form,
+            'rol_usuario': etiqueta_rol(request.user) if request.user.is_authenticated else 'Usuario normal',
+        })
+
+    messages.error(request, 'El enlace de recuperación no es válido o ha expirado.')
+    return redirect('recuperar_contrasena')
+
+
 def register(request):
     if request.method == 'POST':
         form = RegisterForm(request.POST)
@@ -426,6 +495,7 @@ def register(request):
 
 
 @admin_required
+@require_http_methods(["POST"])
 def delete_record(request, pk):
     usuario = get_object_or_404(User, pk=pk)
     if request.method == 'POST':
@@ -531,6 +601,7 @@ def tema_foro_update(request, pk):
     })
 
 
+@require_http_methods(["POST"])
 def tema_foro_delete(request, pk):
     if not request.user.is_authenticated:
         messages.warning(request, 'Debes iniciar sesión para eliminar temas del foro.')
@@ -573,6 +644,7 @@ def publicaciones_admin(request):
     ))
 
 
+@require_http_methods(["POST"])
 def comentar_publicacion_usuario(request, pk):
     if not request.user.is_authenticated:
         messages.warning(request, 'Debes iniciar sesión para comentar.')
@@ -582,6 +654,7 @@ def comentar_publicacion_usuario(request, pk):
 
 
 @admin_required
+@require_http_methods(["POST"])
 def comentar_publicacion_admin(request, pk):
     return procesar_comentario_publicacion(request, pk, 'publicaciones_admin')
 
@@ -607,6 +680,7 @@ def procesar_comentario_publicacion(request, pk, redirect_name):
     return redirect(redirect_name)
 
 
+@require_http_methods(["POST"])
 def reaccion_publicacion_usuario(request, pk, tipo):
     if not request.user.is_authenticated:
         messages.warning(request, 'Debes iniciar sesión para reaccionar.')
@@ -616,6 +690,7 @@ def reaccion_publicacion_usuario(request, pk, tipo):
 
 
 @admin_required
+@require_http_methods(["POST"])
 def reaccion_publicacion_admin(request, pk, tipo):
     return procesar_reaccion_publicacion(request, pk, tipo, 'publicaciones_admin')
 
@@ -640,6 +715,7 @@ def procesar_reaccion_publicacion(request, pk, tipo, redirect_name):
     return redirect(redirect_name)
 
 
+@require_http_methods(["POST"])
 def denunciar_publicacion_usuario(request, pk):
     if not request.user.is_authenticated:
         messages.warning(request, 'Debes iniciar sesión para denunciar.')
@@ -649,6 +725,7 @@ def denunciar_publicacion_usuario(request, pk):
 
 
 @admin_required
+@require_http_methods(["POST"])
 def denunciar_publicacion_admin(request, pk):
     return procesar_denuncia_publicacion(request, pk, 'publicaciones_admin')
 
