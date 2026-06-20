@@ -1,13 +1,21 @@
+from collections import defaultdict
 from functools import wraps
 
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from django.core.paginator import Paginator
+from django.db.models import Count, Q
 from django.shortcuts import get_object_or_404, redirect, render
 
-from .forms import AdminRegisterForm, LoginForm, PerfilForm, RegisterForm, TemaForoForm, UserEditForm
-from .models import Perfil, TemaForo
+from .forms import AdminRegisterForm, ComentarioForoForm, DenunciaForoForm, LoginForm, PerfilForm, RegisterForm, TemaForoForm, UserEditForm
+from .models import ComentarioForo, DenunciaForo, Perfil, ReaccionForo, TemaForo
+
+
+REACCION_PUBLICACION_CHOICES = {
+    'me-gusta': ReaccionForo.ME_GUSTA,
+    'no-me-gusta': ReaccionForo.NO_ME_GUSTA,
+}
 
 
 def obtener_perfil(usuario):
@@ -37,6 +45,59 @@ def etiqueta_rol(usuario):
 
 def puede_editar_tema_foro(tema, usuario):
     return usuario_es_admin(usuario) or tema.id_usuario_id == usuario.pk
+
+
+def obtener_publicaciones_foro_context(request, es_admin, titulo_pagina, descripcion):
+    publicaciones = TemaForo.objects.select_related('id_usuario').annotate(
+        me_gusta=Count('reacciones', filter=Q(reacciones__tipo=ReaccionForo.ME_GUSTA), distinct=True),
+        no_me_gusta=Count('reacciones', filter=Q(reacciones__tipo=ReaccionForo.NO_ME_GUSTA), distinct=True),
+        comentarios_count=Count('comentarios', distinct=True)
+    )
+
+    paginator = Paginator(publicaciones, 10)
+    publicaciones_paginadas = paginator.get_page(request.GET.get('page'))
+    publicaciones_lista = list(publicaciones_paginadas.object_list)
+    ids_publicaciones = [publicacion.pk for publicacion in publicaciones_lista]
+
+    comentarios_por_publicacion = defaultdict(list)
+    reacciones_por_publicacion = {}
+    denuncias_por_publicacion = defaultdict(list)
+
+    if ids_publicaciones:
+        comentarios = ComentarioForo.objects.select_related('id_usuario').filter(
+            id_tema_id__in=ids_publicaciones
+        ).order_by('fecha_comentario')
+        for comentario in comentarios:
+            comentarios_por_publicacion[comentario.id_tema_id].append(comentario)
+
+        denuncias = DenunciaForo.objects.select_related('id_usuario').filter(
+            id_tema_id__in=ids_publicaciones
+        ).order_by('-fecha_denuncia')
+        for denuncia in denuncias:
+            denuncias_por_publicacion[denuncia.id_tema_id].append(denuncia)
+
+        reacciones_usuario = ReaccionForo.objects.filter(
+            id_tema_id__in=ids_publicaciones,
+            id_usuario=request.user
+        ).values('id_tema_id', 'tipo')
+        reacciones_por_publicacion = {
+            reaccion['id_tema_id']: reaccion['tipo']
+            for reaccion in reacciones_usuario
+        }
+
+    for publicacion in publicaciones_lista:
+        publicacion.comentarios_lista = comentarios_por_publicacion.get(publicacion.pk, [])
+        publicacion.denuncias_lista = denuncias_por_publicacion.get(publicacion.pk, [])
+        publicacion.usuario_reaccion = reacciones_por_publicacion.get(publicacion.pk)
+
+    return {
+        'publicaciones': publicaciones_lista,
+        'publicaciones_paginadas': publicaciones_paginadas,
+        'titulo_pagina': titulo_pagina,
+        'descripcion': descripcion,
+        'es_admin': es_admin,
+        'rol_usuario': etiqueta_rol(request.user),
+    }
 
 
 def aplicar_rol(usuario, rol):
@@ -257,15 +318,36 @@ def foro(request):
     else:
         form = TemaForoForm()
 
-    temas = TemaForo.objects.select_related('id_usuario').all()
+    if es_admin and filtro == 'denuncias':
+        temas = TemaForo.objects.select_related('id_usuario').filter(
+            denuncias__isnull=False
+        ).distinct().annotate(
+            denuncias_count=Count('denuncias', distinct=True)
+        )
+    else:
+        temas = TemaForo.objects.select_related('id_usuario').annotate(
+            denuncias_count=Count('denuncias', distinct=True)
+        )
+
     if not es_admin or filtro == 'mis':
         temas = temas.filter(id_usuario=request.user)
 
     paginator = Paginator(temas, 10)
     temas_paginados = paginator.get_page(request.GET.get('page'))
     temas_lista = list(temas_paginados.object_list)
+    ids_temas = [tema.pk for tema in temas_lista]
+    denuncias_por_tema = defaultdict(list)
+
+    if ids_temas:
+        denuncias = DenunciaForo.objects.select_related('id_usuario').filter(
+            id_tema_id__in=ids_temas
+        ).order_by('-fecha_denuncia')
+        for denuncia in denuncias:
+            denuncias_por_tema[denuncia.id_tema_id].append(denuncia)
+
     for tema in temas_lista:
         tema.puede_editar = puede_editar_tema_foro(tema, request.user)
+        tema.denuncias_lista = denuncias_por_tema.get(tema.pk, [])
 
     filtro_query = f'&filtro={filtro}' if es_admin else ''
 
@@ -323,6 +405,128 @@ def tema_foro_delete(request, pk):
 
     messages.warning(request, 'La eliminación de temas se confirma desde el listado del foro.')
     return redirect('foro')
+
+
+def publicaciones_usuario(request):
+    if not request.user.is_authenticated:
+        messages.warning(request, 'Debes iniciar sesión para ver publicaciones.')
+        return redirect('login')
+
+    return render(request, 'publicaciones.html', obtener_publicaciones_foro_context(
+        request,
+        False,
+        'Publicaciones',
+        'Comenta y reacciona con las publicaciones del foro.'
+    ))
+
+
+@admin_required
+def publicaciones_admin(request):
+    return render(request, 'publicaciones.html', obtener_publicaciones_foro_context(
+        request,
+        True,
+        'Publicaciones del Foro',
+        'Consulta, comenta y reacciona con todas las publicaciones registradas en el foro.'
+    ))
+
+
+def comentar_publicacion_usuario(request, pk):
+    if not request.user.is_authenticated:
+        messages.warning(request, 'Debes iniciar sesión para comentar.')
+        return redirect('login')
+
+    return procesar_comentario_publicacion(request, pk, 'publicaciones_usuario')
+
+
+@admin_required
+def comentar_publicacion_admin(request, pk):
+    return procesar_comentario_publicacion(request, pk, 'publicaciones_admin')
+
+
+def procesar_comentario_publicacion(request, pk, redirect_name):
+    tema = get_object_or_404(TemaForo, pk=pk)
+    if not puede_editar_tema_foro(tema, request.user):
+        messages.error(request, 'No tienes permiso para comentar esta publicación.')
+        return redirect(redirect_name)
+
+    if request.method == 'POST':
+        form = ComentarioForoForm(request.POST)
+        if form.is_valid():
+            comentario = form.save(commit=False)
+            comentario.id_tema = tema
+            comentario.id_usuario = request.user
+            comentario.save()
+            messages.success(request, 'Comentario publicado correctamente')
+        else:
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f'{field}: {error}')
+    return redirect(redirect_name)
+
+
+def reaccion_publicacion_usuario(request, pk, tipo):
+    if not request.user.is_authenticated:
+        messages.warning(request, 'Debes iniciar sesión para reaccionar.')
+        return redirect('login')
+
+    return procesar_reaccion_publicacion(request, pk, tipo, 'publicaciones_usuario')
+
+
+@admin_required
+def reaccion_publicacion_admin(request, pk, tipo):
+    return procesar_reaccion_publicacion(request, pk, tipo, 'publicaciones_admin')
+
+
+def procesar_reaccion_publicacion(request, pk, tipo, redirect_name):
+    tipo_reaccion = REACCION_PUBLICACION_CHOICES.get(tipo)
+    if tipo_reaccion is None:
+        messages.error(request, 'Tipo de reacción no válido.')
+        return redirect(redirect_name)
+
+    tema = get_object_or_404(TemaForo, pk=pk)
+    if not puede_editar_tema_foro(tema, request.user):
+        messages.error(request, 'No tienes permiso para reaccionar a esta publicación.')
+        return redirect(redirect_name)
+
+    ReaccionForo.objects.update_or_create(
+        id_tema=tema,
+        id_usuario=request.user,
+        defaults={'tipo': tipo_reaccion}
+    )
+    messages.success(request, 'Reacción registrada correctamente')
+    return redirect(redirect_name)
+
+
+def denunciar_publicacion_usuario(request, pk):
+    if not request.user.is_authenticated:
+        messages.warning(request, 'Debes iniciar sesión para denunciar.')
+        return redirect('login')
+
+    return procesar_denuncia_publicacion(request, pk, 'publicaciones_usuario')
+
+
+@admin_required
+def denunciar_publicacion_admin(request, pk):
+    return procesar_denuncia_publicacion(request, pk, 'publicaciones_admin')
+
+
+def procesar_denuncia_publicacion(request, pk, redirect_name):
+    tema = get_object_or_404(TemaForo, pk=pk)
+
+    if request.method == 'POST':
+        form = DenunciaForoForm(request.POST)
+        if form.is_valid():
+            DenunciaForo.objects.update_or_create(
+                id_tema=tema,
+                id_usuario=request.user,
+                defaults={'motivo': form.cleaned_data['motivo']}
+            )
+            messages.success(request, 'Publicación denunciada correctamente')
+        else:
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f'{field}: {error}')
+    return redirect(redirect_name)
 
 
 @admin_required
