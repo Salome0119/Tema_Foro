@@ -1,0 +1,171 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container py-4" style="background-color:#E6E6FA;">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="card border-0 shadow-lg" style="border-radius: 20px; overflow: hidden;">
+                <div class="card-header text-white py-4 d-flex justify-content-between align-items-center" style="background: linear-gradient(135deg, #CDC1FF 0%, #B39DDB 100%);">
+                    <div>
+                        <h3 class="fw-bold mb-1"><i class="bi bi-journal-text me-2"></i>{{ titulo_pagina }}</h3>
+                        <p class="mb-0 opacity-75">{{ descripcion }}</p>
+                    </div>
+                    <span class="badge rounded-pill text-dark" style="background: #fff; color: #6644b8;">{{ rol_usuario }}</span>
+                </div>
+                <div class="card-body p-4">
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+
+                    {% if publicaciones %}
+                    <div class="row g-4">
+                        {% for publicacion in publicaciones %}
+                        <div class="col-12">
+                            <div class="card border-0 shadow-sm" style="border-radius: 18px; overflow: hidden;">
+                                <div class="card-body p-4">
+                                    <div class="d-flex justify-content-between align-items-start gap-3">
+                                        <div>
+                                            <h5 class="fw-bold text-primary mb-2">{{ publicacion.titulo|default:"Sin título" }}</h5>
+                                            <p class="text-muted mb-3" style="white-space: pre-line;">{{ publicacion.contenido|default:"Sin contenido" }}</p>
+                                            <div class="d-flex flex-wrap gap-2 text-muted small">
+                                                <span class="badge" style="background: #f0ecef; color: #6644b8;">
+                                                    <i class="bi bi-person me-1"></i>{{ publicacion.id_usuario.username|default:"Usuario eliminado" }}
+                                                </span>
+                                                <span class="badge" style="background: #f0ecef; color: #6644b8;">
+                                                    <i class="bi bi-calendar me-1"></i>{{ publicacion.fecha_publicacion|date:"d/m/Y H:i" }}
+                                                </span>
+                                                <span class="badge" style="background: #f0ecef; color: #6644b8;">
+                                                    <i class="bi bi-chat me-1"></i>{{ publicacion.comentarios_count }} comentarios
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="d-flex flex-wrap gap-2 mt-3">
+                                        <form method="POST" action="{% if es_admin %}{% url 'reaccion_publicacion_admin' publicacion.pk 'me-gusta' %}{% else %}{% url 'reaccion_publicacion_usuario' publicacion.pk 'me-gusta' %}{% endif %}">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn rounded-pill fw-semibold shadow-sm" style="{% if publicacion.usuario_reaccion == 'me_gusta' %}background: linear-gradient(135deg, #36d1dc 0%, #5b86e5 100%); color: white;{% else %}background: #f0ecef; color: #3a7bd5; border: 1px solid #cfd8ff;{% endif %}">
+                                                <i class="bi bi-hand-thumbs-up-fill me-1"></i>Me gusta {{ publicacion.me_gusta }}
+                                            </button>
+                                        </form>
+                                        <form method="POST" action="{% if es_admin %}{% url 'reaccion_publicacion_admin' publicacion.pk 'no-me-gusta' %}{% else %}{% url 'reaccion_publicacion_usuario' publicacion.pk 'no-me-gusta' %}{% endif %}">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn rounded-pill fw-semibold shadow-sm" style="{% if publicacion.usuario_reaccion == 'no_me_gusta' %}background: linear-gradient(135deg, #ff9966 0%, #ff5e62 100%); color: white;{% else %}background: #fff5f5; color: #d64550; border: 1px solid #ffd1d4;{% endif %}">
+                                                <i class="bi bi-hand-thumbs-down-fill me-1"></i>No me gusta {{ publicacion.no_me_gusta }}
+                                            </button>
+                                        </form>
+                                        <button type="button" class="btn rounded-pill fw-semibold shadow-sm" data-bs-toggle="collapse" data-bs-target="#comentariosCollapse{{ publicacion.pk }}" aria-expanded="false" aria-controls="comentariosCollapse{{ publicacion.pk }}" style="background: linear-gradient(135deg, #CDC1FF 0%, #B39DDB 100%); color: white;">
+                                            <i class="bi bi-chat-square-heart me-1"></i>Comentar
+                                        </button>
+                                        <button type="button" class="btn rounded-pill fw-semibold shadow-sm" data-bs-toggle="modal" data-bs-target="#denunciaModal{{ publicacion.pk }}" style="background: #fff5f5; color: #d64550; border: 1px solid #ffd1d4;">
+                                            <i class="bi bi-flag me-1"></i>Denunciar
+                                        </button>
+                                    </div>
+
+                                    <div id="comentariosCollapse{{ publicacion.pk }}" class="collapse mt-4">
+                                        <div class="p-3 rounded-4" style="background: linear-gradient(180deg, #ffffff 0%, #f8f7ff 100%); border: 1px solid #ebe7ff;">
+                                            <h6 class="fw-bold mb-3"><i class="bi bi-chat-dots me-1"></i>Comentarios</h6>
+                                            {% if publicacion.comentarios_lista %}
+                                            <div class="d-flex flex-column gap-3 mb-3">
+                                                {% for comentario in publicacion.comentarios_lista %}
+                                                <div class="p-3 rounded-3" style="background: #ffffff; border: 1px solid #efeaff;">
+                                                    <div class="d-flex justify-content-between align-items-center gap-2 mb-2">
+                                                        <strong>{{ comentario.id_usuario.username|default:"Usuario eliminado" }}</strong>
+                                                        <small class="text-muted">{{ comentario.fecha_comentario|date:"d/m/Y H:i" }}</small>
+                                                    </div>
+                                                    <p class="mb-0" style="white-space: pre-line;">{{ comentario.contenido }}</p>
+                                                </div>
+                                                {% endfor %}
+                                            </div>
+                                            {% else %}
+                                            <p class="text-muted mb-3">Aún no hay comentarios en esta publicación.</p>
+                                            {% endif %}
+
+                                            <form method="POST" action="{% if es_admin %}{% url 'comentar_publicacion_admin' publicacion.pk %}{% else %}{% url 'comentar_publicacion_usuario' publicacion.pk %}{% endif %}">
+                                                {% csrf_token %}
+                                                <div class="mb-2">
+                                                    <textarea name="contenido" class="form-control rounded-pill px-3" rows="3" placeholder="Escribe un comentario"></textarea>
+                                                </div>
+                                                <button type="submit" class="btn rounded-pill fw-semibold" style="background: linear-gradient(135deg, #36d1dc 0%, #5b86e5 100%); color: white; border: none;">
+                                                    <i class="bi bi-send me-1"></i>Publicar comentario
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
+
+                                    <div class="modal fade" id="denunciaModal{{ publicacion.pk }}" tabindex="-1" aria-labelledby="denunciaModalLabel{{ publicacion.pk }}" aria-hidden="true">
+                                        <div class="modal-dialog">
+                                            <div class="modal-content">
+                                                <form method="POST" action="{% if es_admin %}{% url 'denunciar_publicacion_admin' publicacion.pk %}{% else %}{% url 'denunciar_publicacion_usuario' publicacion.pk %}{% endif %}">
+                                                    {% csrf_token %}
+                                                    <div class="modal-header" style="background: linear-gradient(135deg, #FF9966 0%, #FF5E62 100%); color: white;">
+                                                        <h5 class="modal-title" id="denunciaModalLabel{{ publicacion.pk }}"><i class="bi bi-flag me-1"></i>Denunciar publicación</h5>
+                                                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                    </div>
+                                                    <div class="modal-body">
+                                                        <p class="mb-2"><strong>Publicación:</strong> {{ publicacion.titulo|default:"Sin título" }}</p>
+                                                        <label class="form-label fw-semibold">Motivo de la denuncia</label>
+                                                        <textarea name="motivo" class="form-control" rows="4" placeholder="Explica por qué deseas denunciar esta publicación"></textarea>
+                                                    </div>
+                                                    <div class="modal-footer">
+                                                        <button type="button" class="btn btn-secondary rounded-pill" data-bs-dismiss="modal">Cancelar</button>
+                                                        <button type="submit" class="btn rounded-pill" style="background: linear-gradient(135deg, #FF9966 0%, #FF5E62 100%); color: white; border: none;">
+                                                            <i class="bi bi-flag me-1"></i>Enviar denuncia
+                                                        </button>
+                                                    </div>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5">
+                        <i class="bi bi-journal-text display-4 text-muted"></i>
+                        <p class="text-muted mt-3">No hay publicaciones disponibles.</p>
+                    </div>
+                    {% endif %}
+
+                    {% if publicaciones_paginadas.has_other_pages %}
+                    <nav aria-label="Page navigation" class="mt-4">
+                        <ul class="pagination justify-content-center">
+                            {% if publicaciones_paginadas.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link rounded-pill mx-1" href="?page={{ publicaciones_paginadas.previous_page_number }}" style="border: none; background: linear-gradient(135deg, #CDC1FF 0%, #B39DDB 100%); color: white;">
+                                    <i class="bi bi-chevron-left"></i> Anterior
+                                </a>
+                            </li>
+                            {% endif %}
+
+                            {% for page_num in publicaciones_paginadas.paginator.page_range %}
+                            <li class="page-item {% if publicaciones_paginadas.number == page_num %}active{% endif %}">
+                                <a class="page-link rounded-pill mx-1 {% if publicaciones_paginadas.number == page_num %}shadow-sm{% endif %}" href="?page={{ page_num }}" style="border: none; {% if publicaciones_paginadas.number == page_num %}background: linear-gradient(135deg, #B39DDB 0%, #9C7CC0 100%); color: white;{% else %}background: #f0ecef; color: #6644b8;{% endif %}">
+                                    {{ page_num }}
+                                </a>
+                            </li>
+                            {% endfor %}
+
+                            {% if publicaciones_paginadas.has_next %}
+                            <li class="page-item">
+                                <a class="page-link rounded-pill mx-1" href="?page={{ publicaciones_paginadas.next_page_number }}" style="border: none; background: linear-gradient(135deg, #CDC1FF 0%, #B39DDB 100%); color: white;">
+                                    Siguiente <i class="bi bi-chevron-right"></i>
+                                </a>
+                            </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

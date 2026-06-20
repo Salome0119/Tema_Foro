@@ -2,7 +2,7 @@ from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate
-from .models import Perfil, TemaForo
+from .models import ComentarioForo, DenunciaForo, Perfil, TemaForo
 
 class LoginForm(forms.Form):
     username = forms.CharField(
@@ -341,3 +341,47 @@ class TemaForoForm(forms.ModelForm):
         if len(contenido) < 10:
             raise forms.ValidationError('El contenido debe tener al menos 10 caracteres.')
         return contenido
+
+
+class ComentarioForoForm(forms.ModelForm):
+    class Meta:
+        model = ComentarioForo
+        fields = ['contenido']
+        labels = {
+            'contenido': 'Comentario',
+        }
+        widgets = {
+            'contenido': forms.Textarea(attrs={
+                'class': 'form-control',
+                'placeholder': 'Escribe un comentario',
+                'rows': 3
+            }),
+        }
+
+    def clean_contenido(self):
+        contenido = (self.cleaned_data.get('contenido') or '').strip()
+        if len(contenido) < 3:
+            raise forms.ValidationError('El comentario debe tener al menos 3 caracteres.')
+        return contenido
+
+
+class DenunciaForoForm(forms.ModelForm):
+    class Meta:
+        model = DenunciaForo
+        fields = ['motivo']
+        labels = {
+            'motivo': 'Motivo de la denuncia',
+        }
+        widgets = {
+            'motivo': forms.Textarea(attrs={
+                'class': 'form-control',
+                'placeholder': 'Explica por qué deseas denunciar esta publicación',
+                'rows': 4
+            }),
+        }
+
+    def clean_motivo(self):
+        motivo = (self.cleaned_data.get('motivo') or '').strip()
+        if len(motivo) < 10:
+            raise forms.ValidationError('El motivo debe tener al menos 10 caracteres.')
+        return motivo

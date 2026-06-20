@@ -74,3 +74,114 @@ class TemaForo(models.Model):
 
     def __str__(self):
         return self.titulo or f'Tema #{self.id_tema}'
+
+
+class ComentarioForo(models.Model):
+    id_comentario = models.AutoField(primary_key=True)
+    id_tema = models.ForeignKey(
+        TemaForo,
+        on_delete=models.CASCADE,
+        db_column='id_tema',
+        related_name='comentarios'
+    )
+    id_usuario = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        db_column='id_usuario',
+        related_name='comentarios_foro'
+    )
+    contenido = models.TextField()
+    fecha_comentario = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'comentario_foro'
+        ordering = ['fecha_comentario']
+        indexes = [
+            models.Index(fields=['id_tema', 'fecha_comentario'], name='idx_comentario_tema_fecha'),
+        ]
+        verbose_name = "Comentario de foro"
+        verbose_name_plural = "Comentarios de foro"
+
+    def __str__(self):
+        return f'Comentario #{self.id_comentario}'
+
+
+class ReaccionForo(models.Model):
+    ME_GUSTA = 'me_gusta'
+    NO_ME_GUSTA = 'no_me_gusta'
+    REACCION_CHOICES = [
+        (ME_GUSTA, 'Me gusta'),
+        (NO_ME_GUSTA, 'No me gusta'),
+    ]
+
+    id_reaccion = models.AutoField(primary_key=True)
+    id_tema = models.ForeignKey(
+        TemaForo,
+        on_delete=models.CASCADE,
+        db_column='id_tema',
+        related_name='reacciones'
+    )
+    id_usuario = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        db_column='id_usuario',
+        related_name='reacciones_foro'
+    )
+    tipo = models.CharField(max_length=20, choices=REACCION_CHOICES)
+    fecha_reaccion = models.DateTimeField(auto_now_add=True)
+    last_update = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'reaccion_foro'
+        ordering = ['-fecha_reaccion', '-id_reaccion']
+        indexes = [
+            models.Index(fields=['id_tema', 'tipo'], name='idx_reaccion_tema_tipo'),
+            models.Index(fields=['id_usuario', 'tipo'], name='idx_reaccion_usuario_tipo'),
+        ]
+        constraints = [
+            models.UniqueConstraint(fields=['id_tema', 'id_usuario'], name='uniq_tema_usuario_reaccion'),
+        ]
+        verbose_name = "Reacción de foro"
+        verbose_name_plural = "Reacciones de foro"
+
+    def __str__(self):
+        return f'{self.get_tipo_display()} en Tema #{self.id_tema_id}'
+
+
+class DenunciaForo(models.Model):
+    id_denuncia = models.AutoField(primary_key=True)
+    id_tema = models.ForeignKey(
+        TemaForo,
+        on_delete=models.CASCADE,
+        db_column='id_tema',
+        related_name='denuncias'
+    )
+    id_usuario = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        db_column='id_usuario',
+        related_name='denuncias_foro'
+    )
+    motivo = models.TextField()
+    fecha_denuncia = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'denuncia_foro'
+        ordering = ['-fecha_denuncia', '-id_denuncia']
+        indexes = [
+            models.Index(fields=['id_tema', 'fecha_denuncia'], name='idx_denuncia_tema_fecha'),
+        ]
+        constraints = [
+            models.UniqueConstraint(fields=['id_tema', 'id_usuario'], name='uniq_tema_usuario_denuncia'),
+        ]
+        verbose_name = "Denuncia de foro"
+        verbose_name_plural = "Denuncias de foro"
+
+    def __str__(self):
+        return f'Denuncia #{self.id_denuncia} en Tema #{self.id_tema_id}'
