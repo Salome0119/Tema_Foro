@@ -1,7 +1,8 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
-from .models import Perfil
+from django.contrib.auth import authenticate
+from .models import Perfil, TemaForo
 
 class LoginForm(forms.Form):
     username = forms.CharField(
@@ -307,3 +308,36 @@ class PerfilForm(forms.ModelForm):
                     'class': 'form-control',
                     'placeholder': field.label
                 })
+
+
+class TemaForoForm(forms.ModelForm):
+    class Meta:
+        model = TemaForo
+        fields = ['titulo', 'contenido']
+        labels = {
+            'titulo': 'Título del tema',
+            'contenido': 'Contenido',
+        }
+        widgets = {
+            'titulo': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Título del tema'
+            }),
+            'contenido': forms.Textarea(attrs={
+                'class': 'form-control',
+                'placeholder': 'Escribe el contenido del tema',
+                'rows': 5
+            }),
+        }
+
+    def clean_titulo(self):
+        titulo = (self.cleaned_data.get('titulo') or '').strip()
+        if len(titulo) < 3:
+            raise forms.ValidationError('El título debe tener al menos 3 caracteres.')
+        return titulo
+
+    def clean_contenido(self):
+        contenido = (self.cleaned_data.get('contenido') or '').strip()
+        if len(contenido) < 10:
+            raise forms.ValidationError('El contenido debe tener al menos 10 caracteres.')
+        return contenido

@@ -6,8 +6,8 @@ from django.contrib.auth.models import User
 from django.core.paginator import Paginator
 from django.shortcuts import get_object_or_404, redirect, render
 
-from .forms import AdminRegisterForm, LoginForm, PerfilForm, RegisterForm, UserEditForm
-from .models import Perfil
+from .forms import AdminRegisterForm, LoginForm, PerfilForm, RegisterForm, TemaForoForm, UserEditForm
+from .models import Perfil, TemaForo
 
 
 def obtener_perfil(usuario):
@@ -33,6 +33,10 @@ def etiqueta_rol(usuario):
     if usuario.is_staff:
         return 'Administrador'
     return 'Usuario normal'
+
+
+def puede_editar_tema_foro(tema, usuario):
+    return usuario_es_admin(usuario) or tema.id_usuario_id == usuario.pk
 
 
 def aplicar_rol(usuario, rol):
@@ -235,7 +239,90 @@ def delete_record(request, pk):
 
 
 def foro(request):
-    return render(request, 'foro.html', {})
+    if not request.user.is_authenticated:
+        messages.warning(request, 'Debes iniciar sesión para publicar en el foro.')
+        return redirect('login')
+
+    es_admin = usuario_es_admin(request.user)
+    filtro = request.GET.get('filtro', 'todos')
+
+    if request.method == 'POST':
+        form = TemaForoForm(request.POST)
+        if form.is_valid():
+            tema = form.save(commit=False)
+            tema.id_usuario = request.user
+            tema.save()
+            messages.success(request, 'Tema publicado correctamente')
+            return redirect('foro')
+    else:
+        form = TemaForoForm()
+
+    temas = TemaForo.objects.select_related('id_usuario').all()
+    if not es_admin or filtro == 'mis':
+        temas = temas.filter(id_usuario=request.user)
+
+    paginator = Paginator(temas, 10)
+    temas_paginados = paginator.get_page(request.GET.get('page'))
+    temas_lista = list(temas_paginados.object_list)
+    for tema in temas_lista:
+        tema.puede_editar = puede_editar_tema_foro(tema, request.user)
+
+    filtro_query = f'&filtro={filtro}' if es_admin else ''
+
+    context = {
+        'form': form,
+        'temas': temas_lista,
+        'temas_paginados': temas_paginados,
+        'filtro': filtro if es_admin else 'mis',
+        'filtro_query': filtro_query,
+        'es_admin': es_admin,
+        'rol_usuario': etiqueta_rol(request.user),
+    }
+    return render(request, 'foro.html', context)
+
+
+def tema_foro_update(request, pk):
+    if not request.user.is_authenticated:
+        messages.warning(request, 'Debes iniciar sesión para editar temas del foro.')
+        return redirect('login')
+
+    tema = get_object_or_404(TemaForo, pk=pk)
+    if not puede_editar_tema_foro(tema, request.user):
+        messages.error(request, 'No tienes permiso para editar este tema.')
+        return redirect('foro')
+
+    if request.method == 'POST':
+        form = TemaForoForm(request.POST, instance=tema)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Tema actualizado correctamente')
+            return redirect('foro')
+    else:
+        form = TemaForoForm(instance=tema)
+    return render(request, 'tema_foro_update.html', {
+        'form': form,
+        'tema': tema,
+        'rol_usuario': etiqueta_rol(request.user),
+    })
+
+
+def tema_foro_delete(request, pk):
+    if not request.user.is_authenticated:
+        messages.warning(request, 'Debes iniciar sesión para eliminar temas del foro.')
+        return redirect('login')
+
+    tema = get_object_or_404(TemaForo, pk=pk)
+    if not puede_editar_tema_foro(tema, request.user):
+        messages.error(request, 'No tienes permiso para eliminar este tema.')
+        return redirect('foro')
+
+    if request.method == 'POST':
+        tema.delete()
+        messages.success(request, 'Tema eliminado correctamente')
+        return redirect('foro')
+
+    messages.warning(request, 'La eliminación de temas se confirma desde el listado del foro.')
+    return redirect('foro')
 
 
 @admin_required

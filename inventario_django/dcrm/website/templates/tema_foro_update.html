@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container py-5" style="background-color:#E6E6FA;">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card border-0 shadow-lg" style="border-radius: 20px; overflow: hidden;">
+                <div class="card-header text-white text-center py-4" style="background: linear-gradient(135deg, #CDC1FF 0%, #B39DDB 100%);">
+                    <h3 class="fw-bold mb-0"><i class="bi bi-pencil me-2"></i>Editar Tema de Foro</h3>
+                </div>
+                <div class="card-body p-5">
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                    <form method="POST">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold"><i class="bi bi-pencil me-1"></i>{{ form.titulo.label }}</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-pencil"></i></span>
+                                {{ form.titulo }}
+                            </div>
+                            {% if form.titulo.errors %}
+                                <div class="text-danger mt-1">{{ form.titulo.errors|first }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold"><i class="bi bi-chat-left-text me-1"></i>{{ form.contenido.label }}</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-chat-left-text"></i></span>
+                                {{ form.contenido }}
+                            </div>
+                            {% if form.contenido.errors %}
+                                <div class="text-danger mt-1">{{ form.contenido.errors|first }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-lg rounded-pill fw-semibold" style="background: linear-gradient(135deg, #CDC1FF 0%, #B39DDB 100%); color: white; border: none;">
+                                <i class="bi bi-check-circle me-2"></i>Guardar Cambios
+                            </button>
+                            <a href="{% url 'foro' %}" class="btn btn-secondary rounded-pill">
+                                <i class="bi bi-arrow-left me-2"></i>Cancelar
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

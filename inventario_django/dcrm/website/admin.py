@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth.models import User
-from .models import Perfil
+from .models import Perfil, TemaForo
 
 class UserAdmin(admin.ModelAdmin):
     list_display = ('username', 'email', 'first_name', 'last_name', 'es_admin', 'is_staff', 'date_joined')
@@ -26,6 +26,12 @@ class PerfilAdmin(admin.ModelAdmin):
     search_fields = ('user__username', 'user__email')
     list_filter = ('fecha_creacion',)
 
+class TemaForoAdmin(admin.ModelAdmin):
+    list_display = ('id_tema', 'titulo', 'id_usuario', 'fecha_publicacion', 'last_update')
+    search_fields = ('titulo', 'contenido', 'id_usuario__username')
+    list_filter = ('fecha_publicacion', 'last_update')
+
 admin.site.unregister(User)
 admin.site.register(User, UserAdmin)
 admin.site.register(Perfil, PerfilAdmin)
+admin.site.register(TemaForo, TemaForoAdmin)
