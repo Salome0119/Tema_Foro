@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth.models import User
-from .models import ComentarioForo, DenunciaForo, Perfil, ReaccionForo, TemaForo
+from .models import ComentarioForo, DenunciaForo, Perfil, ReaccionForo, SolicitudAdministrador, TemaForo
 
 class UserAdmin(admin.ModelAdmin):
     list_display = ('username', 'email', 'first_name', 'last_name', 'es_admin', 'is_staff', 'date_joined')
@@ -41,6 +41,11 @@ class ReaccionForoAdmin(admin.ModelAdmin):
     search_fields = ('id_tema__titulo', 'id_usuario__username')
     list_filter = ('tipo', 'fecha_reaccion', 'last_update')
 
+class SolicitudAdministradorAdmin(admin.ModelAdmin):
+    list_display = ('id_solicitud', 'user', 'solicitante', 'estado', 'fecha_solicitud', 'fecha_resolucion', 'resuelto_por')
+    search_fields = ('user__username', 'user__email', 'solicitante__username')
+    list_filter = ('estado', 'fecha_solicitud', 'fecha_resolucion')
+
 class DenunciaForoAdmin(admin.ModelAdmin):
     list_display = ('id_denuncia', 'id_tema', 'id_usuario', 'fecha_denuncia')
     search_fields = ('motivo', 'id_tema__titulo', 'id_usuario__username')
@@ -52,4 +57,5 @@ admin.site.register(Perfil, PerfilAdmin)
 admin.site.register(TemaForo, TemaForoAdmin)
 admin.site.register(ComentarioForo, ComentarioForoAdmin)
 admin.site.register(ReaccionForo, ReaccionForoAdmin)
+admin.site.register(SolicitudAdministrador, SolicitudAdministradorAdmin)
 admin.site.register(DenunciaForo, DenunciaForoAdmin)

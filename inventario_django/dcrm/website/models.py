@@ -4,6 +4,7 @@ from django.contrib.auth.models import User
 class Perfil(models.Model):
     ROL_USUARIO = 'usuario'
     ROL_ADMIN = 'admin'
+    ROL_PENDIENTE = 'pendiente'
     ROL_CHOICES = [
         (ROL_USUARIO, 'Usuario normal'),
         (ROL_ADMIN, 'Administrador'),
@@ -25,11 +26,60 @@ class Perfil(models.Model):
         return self.rol == self.ROL_ADMIN or self.user.is_staff or self.user.is_superuser
 
     def etiqueta_rol(self):
+        if self.rol == self.ROL_PENDIENTE:
+            return 'Pendiente de aprobación'
         if self.user.is_superuser:
             return 'Superusuario'
         if self.es_admin():
             return 'Administrador'
         return 'Usuario normal'
+
+
+class SolicitudAdministrador(models.Model):
+    PENDIENTE = 'pendiente'
+    APROBADA = 'aprobada'
+    RECHAZADA = 'rechazada'
+    ESTADO_CHOICES = [
+        (PENDIENTE, 'Pendiente'),
+        (APROBADA, 'Aprobada'),
+        (RECHAZADA, 'Rechazada'),
+    ]
+
+    id_solicitud = models.AutoField(primary_key=True)
+    user = models.OneToOneField(
+        User,
+        on_delete=models.CASCADE,
+        related_name='solicitud_admin'
+    )
+    solicitante = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='solicitudes_admin_enviadas'
+    )
+    estado = models.CharField(max_length=20, choices=ESTADO_CHOICES, default=PENDIENTE)
+    fecha_solicitud = models.DateTimeField(auto_now_add=True)
+    fecha_resolucion = models.DateTimeField(null=True, blank=True)
+    resuelto_por = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='solicitudes_admin_resueltas'
+    )
+
+    class Meta:
+        db_table = 'solicitud_administrador'
+        ordering = ['-fecha_solicitud', '-id_solicitud']
+        indexes = [
+            models.Index(fields=['estado', 'fecha_solicitud'], name='idx_solicitud_estado_fecha'),
+        ]
+        verbose_name = "Solicitud de administrador"
+        verbose_name_plural = "Solicitudes de administrador"
+
+    def __str__(self):
+        return f'Solicitud de {self.user.username} ({self.get_estado_display()})'
 
 
 class Publicacion(models.Model):

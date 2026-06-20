@@ -1,15 +1,19 @@
 from collections import defaultdict
 from functools import wraps
 
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
+from django.core.mail import send_mail
 from django.core.paginator import Paginator
 from django.db.models import Count, Q
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
+from django.utils import timezone
 
 from .forms import AdminRegisterForm, ComentarioForoForm, DenunciaForoForm, LoginForm, PerfilForm, RegisterForm, TemaForoForm, UserEditForm
-from .models import ComentarioForo, DenunciaForo, Perfil, ReaccionForo, TemaForo
+from .models import ComentarioForo, DenunciaForo, Perfil, ReaccionForo, SolicitudAdministrador, TemaForo
 
 
 REACCION_PUBLICACION_CHOICES = {
@@ -134,6 +138,132 @@ def admin_required(view_func):
     return wrapper
 
 
+def obtener_correo_administrador():
+    correo = settings.ADMIN_AUTH_EMAIL or (settings.ADMINS[0][1] if settings.ADMINS else '')
+    if correo:
+        return correo
+    usuario_admin = User.objects.filter(is_superuser=True).order_by('id').first()
+    return usuario_admin.email if usuario_admin and usuario_admin.email else ''
+
+
+def enviar_correo_solicitud_admin(request, solicitud):
+    destinatario = obtener_correo_administrador()
+    if not destinatario:
+        return False
+
+    aprobar_url = request.build_absolute_uri(reverse('aprobar_admin', args=[solicitud.pk]))
+    rechazar_url = request.build_absolute_uri(reverse('rechazar_admin', args=[solicitud.pk]))
+    asunto = 'Nueva solicitud de acceso administrador'
+    mensaje = (
+        f'Se ha solicitado acceso de administrador para el usuario {solicitud.user.username}.\n\n'
+        f'Nombre: {solicitud.user.get_full_name() or "-"}\n'
+        f'Correo: {solicitud.user.email}\n'
+        f'Usuario: {solicitud.user.username}\n\n'
+        f'Aprobar: {aprobar_url}\n'
+        f'Rechazar: {rechazar_url}'
+    )
+    try:
+        send_mail(asunto, mensaje, settings.DEFAULT_FROM_EMAIL, [destinatario], fail_silently=False)
+    except Exception:
+        return False
+    return True
+
+
+def enviar_correo_decision_admin(solicitud, aprobada):
+    if not solicitud.user.email:
+        return False
+    asunto = 'Solicitud de administrador aprobada' if aprobada else 'Solicitud de administrador rechazada'
+    mensaje = (
+        f'Hola {solicitud.user.username},\n\n'
+        f'Tu solicitud para acceder como administrador ha sido {"aprobada" if aprobada else "rechazada"}.\n\n'
+        f'{"Ahora puedes iniciar sesión con permisos de administrador." if aprobada else "Puedes iniciar sesión con permisos de usuario normal."}'
+    )
+    try:
+        send_mail(asunto, mensaje, settings.DEFAULT_FROM_EMAIL, [solicitud.user.email], fail_silently=False)
+    except Exception:
+        return False
+    return True
+
+
+def crear_solicitud_admin(request, user):
+    perfil = Perfil.objects.get_or_create(user=user)[0]
+    perfil.rol = Perfil.ROL_PENDIENTE
+    perfil.save()
+    user.is_active = False
+    user.is_staff = False
+    user.is_superuser = False
+    user.save()
+    solicitud, _ = SolicitudAdministrador.objects.get_or_create(
+        user=user,
+        defaults={
+            'solicitante': user,
+            'estado': SolicitudAdministrador.PENDIENTE,
+        }
+    )
+    enviar_correo_solicitud_admin(request, solicitud)
+
+
+def aprobar_solicitud_admin(request, solicitud):
+    solicitud.estado = SolicitudAdministrador.APROBADA
+    solicitud.fecha_resolucion = timezone.now()
+    solicitud.resuelto_por = request.user
+    solicitud.save()
+    perfil = Perfil.objects.get_or_create(user=solicitud.user)[0]
+    perfil.rol = Perfil.ROL_ADMIN
+    perfil.save()
+    solicitud.user.is_active = True
+    solicitud.user.is_staff = True
+    solicitud.user.is_superuser = False
+    solicitud.user.save()
+
+
+def rechazar_solicitud_admin(request, solicitud):
+    solicitud.estado = SolicitudAdministrador.RECHAZADA
+    solicitud.fecha_resolucion = timezone.now()
+    solicitud.resuelto_por = request.user
+    solicitud.save()
+    perfil = Perfil.objects.get_or_create(user=solicitud.user)[0]
+    perfil.rol = Perfil.ROL_USUARIO
+    perfil.save()
+    solicitud.user.is_active = True
+    solicitud.user.is_staff = False
+    solicitud.user.is_superuser = False
+    solicitud.user.save()
+
+
+@admin_required
+def solicitudes_admin(request):
+    solicitudes = SolicitudAdministrador.objects.select_related('user', 'resuelto_por').order_by('-fecha_solicitud')
+    return render(request, 'solicitudes_admin.html', {
+        'solicitudes': solicitudes,
+        'rol_usuario': etiqueta_rol(request.user),
+    })
+
+
+@admin_required
+def aprobar_admin(request, pk):
+    solicitud = get_object_or_404(SolicitudAdministrador, pk=pk)
+    if request.method == 'POST':
+        aprobar_solicitud_admin(request, solicitud)
+        if enviar_correo_decision_admin(solicitud, True):
+            messages.success(request, 'Solicitud aprobada correctamente')
+        else:
+            messages.warning(request, 'Solicitud aprobada, pero no se pudo enviar el correo de notificación.')
+    return redirect('solicitudes_admin')
+
+
+@admin_required
+def rechazar_admin(request, pk):
+    solicitud = get_object_or_404(SolicitudAdministrador, pk=pk)
+    if request.method == 'POST':
+        rechazar_solicitud_admin(request, solicitud)
+        if enviar_correo_decision_admin(solicitud, False):
+            messages.success(request, 'Solicitud rechazada correctamente')
+        else:
+            messages.warning(request, 'Solicitud rechazada, pero no se pudo enviar el correo de notificación.')
+    return redirect('solicitudes_admin')
+
+
 def home(request):
     if not request.user.is_authenticated:
         return render(request, 'login.html', {})
@@ -250,12 +380,25 @@ def register(request):
         if form.is_valid():
             user = form.save()
             rol = form.cleaned_data.get('rol', Perfil.ROL_USUARIO)
-            aplicar_rol(user, rol)
             Perfil.objects.create(
                 user=user,
-                rol=rol,
+                rol=rol if rol != Perfil.ROL_ADMIN else Perfil.ROL_PENDIENTE,
                 **datos_perfil_desde_post(request)
             )
+            if rol == Perfil.ROL_ADMIN:
+                user.is_active = False
+                user.is_staff = False
+                user.is_superuser = False
+                user.save()
+                solicitud = SolicitudAdministrador.objects.create(user=user, solicitante=user)
+                correo_enviado = enviar_correo_solicitud_admin(request, solicitud)
+                if correo_enviado:
+                    messages.success(request, 'Cuenta creada. Se envió una solicitud de aprobación de administrador.')
+                else:
+                    messages.warning(request, 'Cuenta creada, pero no se pudo enviar el correo de solicitud de administrador.')
+                messages.warning(request, 'No podrás iniciar sesión hasta que la solicitud sea aprobada o rechazada.')
+                return redirect('login')
+
             username = form.cleaned_data.get('username')
             password = form.cleaned_data.get('password1')
             user = authenticate(request, username=username, password=password)

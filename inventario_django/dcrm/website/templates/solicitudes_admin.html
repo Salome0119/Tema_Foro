@@ -1,0 +1,95 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container py-4" style="background-color:#E6E6FA;">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="card border-0 shadow-lg" style="border-radius: 20px; overflow: hidden;">
+                <div class="card-header text-white py-4" style="background: linear-gradient(135deg, #CDC1FF 0%, #B39DDB 100%);">
+                    <h3 class="fw-bold mb-1"><i class="bi bi-shield-lock me-2"></i>Solicitudes de Administrador</h3>
+                    <p class="mb-0 opacity-75">Aprueba o rechaza las solicitudes de usuarios que desean acceso administrativo.</p>
+                </div>
+                <div class="card-body p-4">
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+
+                    {% if solicitudes %}
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead class="text-white" style="background: linear-gradient(135deg, #B39DDB 0%, #8E7CC3 100%);">
+                                <tr>
+                                    <th>Usuario</th>
+                                    <th>Correo</th>
+                                    <th>Estado</th>
+                                    <th>Fecha solicitud</th>
+                                    <th>Resolución</th>
+                                    <th class="text-center">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for solicitud in solicitudes %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ solicitud.user.username }}</strong>
+                                        <div class="text-muted small">{{ solicitud.user.get_full_name|default:"Sin nombre" }}</div>
+                                    </td>
+                                    <td>{{ solicitud.user.email|default:"Sin correo" }}</td>
+                                    <td>
+                                        {% if solicitud.estado == 'pendiente' %}
+                                        <span class="badge rounded-pill" style="background: #fff3cd; color: #8a5a00;">Pendiente</span>
+                                        {% elif solicitud.estado == 'aprobada' %}
+                                        <span class="badge rounded-pill" style="background: #d1e7dd; color: #0f5132;">Aprobada</span>
+                                        {% else %}
+                                        <span class="badge rounded-pill" style="background: #f8d7da; color: #842029;">Rechazada</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ solicitud.fecha_solicitud|date:"d/m/Y H:i" }}</td>
+                                    <td>
+                                        {% if solicitud.fecha_resolucion %}
+                                            {{ solicitud.fecha_resolucion|date:"d/m/Y H:i" }}
+                                            <div class="text-muted small">Por {{ solicitud.resuelto_por.username|default:"-" }}</div>
+                                        {% else %}
+                                            -
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-center">
+                                        {% if solicitud.estado == 'pendiente' %}
+                                        <form method="POST" action="{% url 'aprobar_admin' solicitud.pk %}" class="d-inline">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn btn-sm rounded-pill" style="background: #d1e7dd; color: #0f5132;">
+                                                <i class="bi bi-check-circle me-1"></i>Aprobar
+                                            </button>
+                                        </form>
+                                        <form method="POST" action="{% url 'rechazar_admin' solicitud.pk %}" class="d-inline">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn btn-sm rounded-pill" style="background: #f8d7da; color: #842029;">
+                                                <i class="bi bi-x-circle me-1"></i>Rechazar
+                                            </button>
+                                        </form>
+                                        {% else %}
+                                        <span class="text-muted small">Sin acciones</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5">
+                        <i class="bi bi-shield-check display-4 text-muted"></i>
+                        <p class="text-muted mt-3">No hay solicitudes de administrador registradas.</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
