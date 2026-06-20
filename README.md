@@ -164,20 +164,7 @@ Estructura detallada de la app `website`
 - `admin.py` — registro y personalización del admin.
 - `templates/` — plantillas HTML para páginas públicas e internas.
 
-Cómo contribuir
----------------
-1. Haz un fork del repositorio.
-2. Crea una rama con una descripción clara: `git checkout -b feature/nueva-funcionalidad`.
-3. Realiza cambios, añade tests y confirma que todo pasa localmente.
-4. Haz un pull request con una descripción clara de los cambios y su propósito.
 
-Licencia
---------
-No se incluye licencia en el repositorio actual. Recomiendo MIT si quieres permitir uso y contribuciones abiertas. Agrega un archivo `LICENSE` con el texto correspondiente.
-
-Contacto
---------
-Para dudas o colaboración, contacta al autor del repositorio (nombre de usuario: `Salome0119`) vía GitHub.
 
 Notas finales
 -------------
