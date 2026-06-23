@@ -145,15 +145,6 @@ Buenas prácticas y seguridad
 - Revisa `settings.py` para ver si hay valores por defecto que convengan ser movidos a variables de entorno.
 - Añade `python-decouple` o `django-environ` si prefieres manejar variables vía `.env`.
 
-Sugerencias para mejorar el repositorio
----------------------------------------
-- Añadir un `README.md` (este archivo).
-- Añadir un `.env.example` con las variables necesarias.
-- Añadir un archivo `.gitignore` específico para entornos, si aún no está configurado (ya existe un `.gitignore` en el repo raíz).
-- Añadir un `Procfile` o archivos de configuración para despliegue (Heroku, Dockerfile, docker-compose).
-- Añadir documentación de las rutas principales y ejemplos de uso de la interfaz.
-- Añadir tests unitarios y de integración más completos.
-- Eliminar `db.sqlite3` del repositorio si contiene datos reales (añadirlo a `.gitignore` y proveer migraciones o fixtures en su lugar).
 
 Estructura detallada de la app `website`
 ----------------------------------------
